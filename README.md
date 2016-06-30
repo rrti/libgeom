@@ -1,2 +1,0 @@
-# libgeom
-geometry library 
