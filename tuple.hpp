@@ -61,12 +61,12 @@ namespace lib_math {
 		static unsigned int hash(const t_vector<type>& vec, const t_vector<type>& mask) { return 0; }
 
 		bool equals(const t_tuple<type>& t, const t_tuple<type>& eps = eps_tuple()) const {
-			if (!lib_math::fp_eq<type>(x(), t.x(), eps.x())) return false;
-			if (!lib_math::fp_eq<type>(y(), t.y(), eps.y())) return false;
-			if (!lib_math::fp_eq<type>(z(), t.z(), eps.z())) return false;
-			if (!lib_math::fp_eq<type>(w(), t.w(), eps.w())) return false;
-
-			return true;
+			unsigned int mask = 0;
+			mask += lib_math::fp_eq<type>(x(), t.x(), eps.x());
+			mask += lib_math::fp_eq<type>(y(), t.y(), eps.y());
+			mask += lib_math::fp_eq<type>(z(), t.z(), eps.z());
+			mask += lib_math::fp_eq<type>(w(), t.w(), eps.w());
+			return (mask == 4);
 		}
 
 		bool is_point() const { return (w() == 1); }
