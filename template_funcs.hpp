@@ -30,7 +30,7 @@ namespace lib_math {
 
 	// behaves as relative-tolerance comparison when abs(a) and abs(b)
 	// are both > 1, otherwise behaves as absolute-tolerance comparison
-	// (an alternative would be "abs(a - b) <= eps * abs(a + b)")
+	// (alternatively use "abs(a - b) <= (eps * (1 + abs(a) + abs(b)))")
 	//
 	template<typename type> bool fp_eq(type a, type b, type eps) {
 		return (std::abs(a - b) <= (eps * max3<type>(std::abs(a), std::abs(b), type(1))));
