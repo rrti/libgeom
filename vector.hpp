@@ -2,6 +2,8 @@
 #define LIBGEOM_VECTOR_HDR
 
 #include <cmath>
+#include <cstdint>
+
 #include <algorithm>
 #include <functional>
 
@@ -305,8 +307,11 @@ namespace lib_math {
 		type m_values[LIBGEOM_VECTOR_SIZE];
 	};
 
-	typedef t_vector<         int> t_vector4i;
-	typedef t_vector<unsigned int> t_vector4ui;
+	typedef t_vector< int32_t> t_vector4i;
+	typedef t_vector<uint32_t> t_vector4ui;
+
+	typedef t_vector< int64_t> t_vector4li;
+	typedef t_vector<uint64_t> t_vector4lui;
 
 	typedef t_vector< float> t_vector4f;
 	typedef t_vector<double> t_vector4d;

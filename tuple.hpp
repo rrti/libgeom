@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 
 #include "./math_defs.hpp"
 #include "./template_funcs.hpp"
@@ -115,10 +116,11 @@ namespace lib_math {
 		type m_values[LIBGEOM_TUPLE_SIZE];
 	};
 
-	typedef t_tuple<         int> t_tuple4i;
-	typedef t_tuple<unsigned int> t_tuple4ui;
+	typedef t_tuple< int32_t> t_tuple4i;
+	typedef t_tuple<uint32_t> t_tuple4ui;
 
-	typedef t_tuple<bool> t_tuple4b;
+	typedef t_tuple< int64_t> t_tuple4li;
+	typedef t_tuple<uint64_t> t_tuple4lui;
 
 	typedef t_tuple< float> t_tuple4f;
 	typedef t_tuple<double> t_tuple4d;

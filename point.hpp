@@ -2,6 +2,8 @@
 #define LIBGEOM_POINT_HDR
 
 #include <cmath>
+#include <cstdint>
+
 #include "./math_defs.hpp"
 
 namespace lib_math {
@@ -87,8 +89,11 @@ namespace lib_math {
 		type m_values[LIBGEOM_POINT_SIZE];
 	};
 
-	typedef t_point<         int> t_point4i;
-	typedef t_point<unsigned int> t_point4ui;
+	typedef t_point< int32_t> t_point4i;
+	typedef t_point<uint32_t> t_point4ui;
+
+	typedef t_point< int64_t> t_point4li;
+	typedef t_point<uint64_t> t_point4lui;
 
 	typedef t_point< float> t_point4f;
 	typedef t_point<double> t_point4d;
