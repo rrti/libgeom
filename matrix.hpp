@@ -37,6 +37,23 @@ namespace lib_math {
 		}
 
 
+		bool operator == (const t_matrix<type>& m) const {
+			unsigned int r = 0;
+
+			for (unsigned int n = 0; n < LIBGEOM_MATRIX_SIZE; n += 4) {
+				r += fp_eq(m_values[n + 0], m[n + 0], t_tuple<type>::eps_scalar());
+				r += fp_eq(m_values[n + 1], m[n + 1], t_tuple<type>::eps_scalar());
+				r += fp_eq(m_values[n + 2], m[n + 2], t_tuple<type>::eps_scalar());
+				r += fp_eq(m_values[n + 3], m[n + 3], t_tuple<type>::eps_scalar());
+			}
+
+			return (r == LIBGEOM_MATRIX_SIZE);
+		}
+
+		bool operator != (const t_matrix<type>& m) const {
+			return (!((*this) == m));
+		}
+
 
 		// matrix * point = point; 3x3 rotation + 1x3 translation
 		// homogeneous w-coordinate of a point is 1 --> T included
@@ -60,9 +77,9 @@ namespace lib_math {
 		// aka "transform_vector"
 		m_vector_type operator * (const m_vector_type& v) const {
 			m_vector_type tv;
-			tv.x() = (m_values[0] * v.x()) + (m_values[4] * v.y()) + (m_values[ 8] * v.z()); // equals n.inner_product(row[0])
-			tv.y() = (m_values[1] * v.x()) + (m_values[5] * v.y()) + (m_values[ 9] * v.z()); // equals n.inner_product(row[1])
-			tv.z() = (m_values[2] * v.x()) + (m_values[6] * v.y()) + (m_values[10] * v.z()); // equals n.inner_product(row[2])
+			tv.x() = (m_values[0] * v.x()) + (m_values[4] * v.y()) + (m_values[ 8] * v.z()); // same as n.inner_product(row[0])
+			tv.y() = (m_values[1] * v.x()) + (m_values[5] * v.y()) + (m_values[ 9] * v.z()); // same as n.inner_product(row[1])
+			tv.z() = (m_values[2] * v.x()) + (m_values[6] * v.y()) + (m_values[10] * v.z()); // same as n.inner_product(row[2])
 			tv.w() = v.w();
 			return tv;
 		}
@@ -150,7 +167,7 @@ namespace lib_math {
 
 		// <idx> should be one of {0,4,8,12}
 		const type* get_raw_vector(unsigned int idx) const { return &m_values[idx]; }
-			  type* get_raw_vector(unsigned int idx)       { return &m_values[idx]; }
+		      type* get_raw_vector(unsigned int idx)       { return &m_values[idx]; }
 		const type* get_values() const { return &m_values[0]; }
 		      type* get_values()       { return &m_values[0]; }
 
@@ -168,10 +185,10 @@ namespace lib_math {
 
 		t_matrix<type> translate(const m_vector_type& v) const {
 			t_matrix<type> r = *this;
-			r[12] += ((v.x() * r[0]) + (v.y() * r[4]) + (v.z() * r[ 8])); // equals tv.inner_product(rows[0])
-			r[13] += ((v.x() * r[1]) + (v.y() * r[5]) + (v.z() * r[ 9])); // equals tv.inner_product(rows[1])
-			r[14] += ((v.x() * r[2]) + (v.y() * r[6]) + (v.z() * r[10])); // equals tv.inner_product(rows[2])
-			r[15] += ((v.x() * r[3]) + (v.y() * r[7]) + (v.z() * r[11])); // equals tv.inner_product(rows[3])
+			r[12] += ((v.x() * r[0]) + (v.y() * r[4]) + (v.z() * r[ 8])); // same as tv.inner_product(rows[0])
+			r[13] += ((v.x() * r[1]) + (v.y() * r[5]) + (v.z() * r[ 9])); // same as tv.inner_product(rows[1])
+			r[14] += ((v.x() * r[2]) + (v.y() * r[6]) + (v.z() * r[10])); // same as tv.inner_product(rows[2])
+			r[15] += ((v.x() * r[3]) + (v.y() * r[7]) + (v.z() * r[11])); // same as tv.inner_product(rows[3])
 			return r;
 		}
 		t_matrix<type> scale(const m_vector_type& sv) const {
@@ -239,83 +256,150 @@ namespace lib_math {
 		t_matrix<type>& invert_affine_ref() { return ((*this) = invert_affine()); }
 
 
-		// NOTE:
-		//   these are intrinsic: y-coordinate of Z-axis
-		//   drops after rotate_x and again after rotate_y
-		//
-		// rotate_x on an identity-vector (v) gives v' = <x' = x,  y' = ca*y - sa*z,  z' = sa*y + ca*z>  (CCW)
-		// rotate_x on an identity-matrix (R) gives R' = {X' = X,  Y' = <0, ca, -sa>,  Z' = <0, sa, ca>}  (CW?)
-		//
-		// assume v = Z = <0,0,1>, then v' = Z' = <0, ca*0 - sa*1, sa*0 + ca*1> = <0, -sa, ca>
-		// which is the OPPOSITE (clockwise instead of counter-clockwise) of the Z-column of R'
-		// (R * v != v')
-		//
-		// rotate in yz-plane
-		t_matrix<type>& rotate_x_int(const type angle_radians) {
-			const type ca = std::cos(angle_radians);
-			const type sa = std::sin(angle_radians);
 
-			t_matrix<type> r;
-			r[ 5] = +ca; r[ 9] = +sa; // y.y(), z.y()
-			r[ 6] = -sa; r[10] = +ca; // y.z(), z.z()
+		t_matrix<type>& rotate_x_ref(type angle) { return ((*this) = rotate_x(angle)); }
+		t_matrix<type>& rotate_y_ref(type angle) { return ((*this) = rotate_y(angle)); }
+		t_matrix<type>& rotate_z_ref(type angle) { return ((*this) = rotate_z(angle)); }
 
-			// make the rotation counter-clockwise
-			r.transpose_rotation_ref();
+		// these perform rotations around the (fixed aka external aka extrinsic) global coordinate axes
+		// for any external rotation, multiply by the matrix R(C)*R(B)*R(A) if rotation order is A,B,C
+		t_matrix<type>& rotate_xyz_ext_ref(const m_vector_type& angles) { return ((*this) = rotate_xyz_ext(angles)); }
+		t_matrix<type>& rotate_yxz_ext_ref(const m_vector_type& angles) { return ((*this) = rotate_yxz_ext(angles)); }
+		t_matrix<type>& rotate_zxy_ext_ref(const m_vector_type& angles) { return ((*this) = rotate_zxy_ext(angles)); }
+		t_matrix<type>& rotate_zyx_ext_ref(const m_vector_type& angles) { return ((*this) = rotate_zyx_ext(angles)); }
+		// these perform rotations around the (moving aka internal aka intrinsic) local coordinate axes
+		// for any internal rotation, multiply by the matrix R(A)*R(B)*R(C) if rotation order is A,B,C
+		// (or equivalently by the external matrix corresponding to the rotation order C,B,A)
+		t_matrix<type>& rotate_xyz_int_ref(const m_vector_type& angles) { return ((*this) = rotate_xyz_int(angles)); }
+		t_matrix<type>& rotate_yxz_int_ref(const m_vector_type& angles) { return ((*this) = rotate_yxz_int(angles)); }
+		t_matrix<type>& rotate_zxy_int_ref(const m_vector_type& angles) { return ((*this) = rotate_zxy_int(angles)); }
+		t_matrix<type>& rotate_zyx_int_ref(const m_vector_type& angles) { return ((*this) = rotate_zyx_int(angles)); }
 
-			return ((*this) *= r);
+
+		// rotate in X,Y,Z order [Rext = R(Z)*R(Y)*R(X), Rint = R(X)*R(Y)*R(Z)]
+		t_matrix<type> rotate_xyz_ext(const m_vector_type angles) const {
+			const t_matrix<type> m  = *this;
+			const t_matrix<type> rx = std::move(rotate_x(angles[P_AXIS_IDX]));
+			const t_matrix<type> ry = std::move(rotate_y(angles[Y_AXIS_IDX]));
+			const t_matrix<type> rz = std::move(rotate_z(angles[R_AXIS_IDX]));
+			return (m * (rz * ry * rx));
 		}
-		// rotate in xz-plane
-		t_matrix<type>& rotate_y_int(const type angle_radians) {
-			const type ca = std::cos(angle_radians);
-			const type sa = std::sin(angle_radians);
-
-			t_matrix<type> r;
-			r[ 0] = +ca; r[ 8] = -sa; // x.x(), z.x()
-			r[ 2] = +sa; r[10] = +ca; // x.z(), z.z()
-
-			// make the rotation counter-clockwise
-			r.transpose_rotation_ref();
-
-			return ((*this) *= r);
-		}
-		// rotate in xy-plane
-		t_matrix<type>& rotate_z_int(const type angle_radians) {
-			const type ca = std::cos(angle_radians);
-			const type sa = std::sin(angle_radians);
-
-			t_matrix<type> r;
-			r[0] = +ca; r[4] = +sa; // x.x(), y.x()
-			r[1] = -sa; r[5] = +ca; // x.y(), y.y()
-
-			// make the rotation counter-clockwise
-			r.transpose_rotation_ref();
-
-			return ((*this) *= r);
+		t_matrix<type> rotate_xyz_int(const m_vector_type angles) const {
+			return (rotate_zyx_ext(angles));
 		}
 
-		// rotation about arbitrary axis, ie. in the
-		// plane crossing the origin whose normal is
-		// <axis.x, axis.y, axis.z>
-		// any such rotation can be decomposed into
-		// rotations about the three component axes
-		t_matrix<type>& rotate_ref(const m_vector_type& rot_axis, const type angle_radians) {
+
+		// rotate in Y,X,Z order [Rext = R(Z)*R(X)*R(Y), Rint = R(Y)*R(X)*R(Z)]
+		t_matrix<type> rotate_yxz_ext(const m_vector_type angles) const {
+			const t_matrix<type> m  = *this;
+			const t_matrix<type> rx = std::move(rotate_x(angles[P_AXIS_IDX]));
+			const t_matrix<type> ry = std::move(rotate_y(angles[Y_AXIS_IDX]));
+			const t_matrix<type> rz = std::move(rotate_z(angles[R_AXIS_IDX]));
+			return (m * (rz * rx * ry));
+		}
+		t_matrix<type> rotate_yxz_int(const m_vector_type angles) const {
+			return (rotate_zxy_ext(angles));
+		}
+
+
+		// rotate in Z,X,Y order [Rext = R(Y)*R(X)*R(Z), Rint = R(Z)*R(X)*R(Y)]
+		t_matrix<type> rotate_zxy_ext(const m_vector_type angles) const {
+			const t_matrix<type> m  = *this;
+			const t_matrix<type> rx = std::move(rotate_x(angles[P_AXIS_IDX]));
+			const t_matrix<type> ry = std::move(rotate_y(angles[Y_AXIS_IDX]));
+			const t_matrix<type> rz = std::move(rotate_z(angles[R_AXIS_IDX]));
+			return (m * (ry * rx * rz));
+		}
+		t_matrix<type> rotate_zxy_int(const m_vector_type angles) const {
+			return (rotate_yxz_ext(angles));
+		}
+
+
+		// rotate in Z,Y,X order [Rext = R(X)*R(Y)*R(Z), Rint = R(Z)*R(Y)*R(X)]
+		t_matrix<type> rotate_zyx_ext(const m_vector_type angles) const {
+			const t_matrix<type> m  = *this;
+			const t_matrix<type> rx = std::move(rotate_x(angles[P_AXIS_IDX]));
+			const t_matrix<type> ry = std::move(rotate_y(angles[Y_AXIS_IDX]));
+			const t_matrix<type> rz = std::move(rotate_z(angles[R_AXIS_IDX]));
+			return (m * (rx * ry * rz));
+		}
+		t_matrix<type> rotate_zyx_int(const m_vector_type angles) const {
+			return (rotate_xyz_ext(angles));
+		}
+
+
+		// rotate in local or global YZ-plane; phi or alpha radians
+		t_matrix<type> rotate_x(type angle) const {
+			angle = clamp_angle_rad(angle);
+
+			// Rx = ([X = [1, 0, 0], Y = [0, ca, -sa], Z = [0, sa, ca]])
+			const type ca = std::cos(angle);
+			const type sa = std::sin(angle);
+
+			t_matrix<type> rm;
+			rm[ 5] = +ca; rm[ 9] = +sa;
+			rm[ 6] = -sa; rm[10] = +ca;
+			return ((*this) * rm);
+		}
+
+		// rotate in local or global XZ-plane; theta or beta radians
+		t_matrix<type> rotate_y(type angle) const {
+			angle = clamp_angle_rad(angle);
+
+			// Ry = ([X = [ca, 0, sa], Y = [0, 1, 0], Z = [-sa, 0, ca]])
+			const type ca = std::cos(angle);
+			const type sa = std::sin(angle);
+
+			t_matrix<type> rm;
+			rm[ 0] = +ca; rm[ 8] = -sa;
+			rm[ 2] = +sa; rm[10] = +ca;
+			return ((*this) * rm);
+		}
+
+		// rotate in local or global XY-plane; psi or gamma radians
+		t_matrix<type> rotate_z(type angle) const {
+			angle = clamp_angle_rad(angle);
+
+			// Rz = ([X = [ca, -sa, 0], Y = [sa, ca, 0], Z = [0, 0, 1]])
+			const type ca = std::cos(angle);
+			const type sa = std::sin(angle);
+
+			t_matrix<type> rm;
+			rm[0] = +ca; rm[4] = +sa;
+			rm[1] = -sa; rm[5] = +ca;
+			return ((*this) * rm);
+		}
+
+
+
+		// rotation about any arbitrary axis, ie. in the plane crossing
+		// the origin whose normal is given by <axis.x, axis.y, axis.z>
+		// any such rotation can be decomposed into rotations about the
+		// three component axes (by aligning the arbitrary axis with one
+		// of the coordinate axes [here z], then rotating, then undoing
+		// step 1)
+		//
+		// NOTE: rot_axis equal to Y is not supported, use rotate_y_ref
+		t_matrix<type>& rotate_axis_ref(const m_vector_type& rot_axis, type angle) {
+			return ((*this) = rotate_axis(rot_axis, angle));
+		}
+
+		t_matrix<type> rotate_axis(const m_vector_type& rot_axis, type angle) const {
 			const m_vector_type vx = (rot_axis.outer_product(t_vector<type>::y_axis_vector())).normalize();
 			const m_vector_type vy = (rot_axis.outer_product(                           vx  )).normalize();
 
-			const t_matrix<type> m_fwd = t_matrix<type>(vx, vy, rot_axis);
-			const t_matrix<type> m_inv = m_fwd.invert_affine();
-			const t_matrix<type> m_rot = t_matrix<type>().rotate_z_int(angle_radians);
+			const t_matrix<type> i;
+			const t_matrix<type> m_fwd = std::move(t_matrix<type>(vx, vy, rot_axis));
+			const t_matrix<type> m_inv = std::move(m_fwd.invert_affine());
+			const t_matrix<type> m_rot = std::move(i.rotate_z(angle));
 
-			return ((*this) = m_fwd * m_rot * m_inv);
+			return ((*this) * (m_fwd * m_rot * m_inv));
 		}
-		t_matrix<type>& rotate_ref_tmp(const m_vector_type& rot_axis, const type angle_radians) {
-			return (rotate_ref(rot_axis, angle_radians));
 
-			/*
-			// does not preserve orthonormality
-			// for non-principal rotation axes!
-			const type ca = std::cos(angle_radians);
-			const type sa = std::sin(angle_radians);
+		/*
+		t_matrix<type>& rotate_axis_ref_tmp(const m_vector_type& rot_axis, type angle) {
+			const type ca = std::cos(angle);
+			const type sa = std::sin(angle);
 
 			const m_vector_type x_axis = get_x_vector();
 			const m_vector_type y_axis = get_y_vector();
@@ -331,6 +415,7 @@ namespace lib_math {
 			const m_vector_type rgt_axis_y = y_axis - fwd_axis_y;
 			const m_vector_type rgt_axis_z = z_axis - fwd_axis_z;
 
+			// does not preserve orthonormality for non-principal rotation axes
 			const m_vector_type up_axis_x = (rot_axis.outer_product(rgt_axis_x)).normalize();
 			const m_vector_type up_axis_y = (rot_axis.outer_product(rgt_axis_y)).normalize();
 			const m_vector_type up_axis_z = (rot_axis.outer_product(rgt_axis_z)).normalize();
@@ -340,39 +425,39 @@ namespace lib_math {
 			set_z_vector((fwd_axis_z + (rgt_axis_z * ca + up_axis_z * sa)));
 
 			return *this;
-			*/
 		}
+		*/
 
 
 
-		void set_x_vector(const m_vector_type& v) { m_values[ 0] = v.x(); m_values[ 1] = v.y(); m_values[ 2] = v.z(); m_values[ 3] = type(0); } // v.w();
-		void set_y_vector(const m_vector_type& v) { m_values[ 4] = v.x(); m_values[ 5] = v.y(); m_values[ 6] = v.z(); m_values[ 7] = type(0); } // v.w();
-		void set_z_vector(const m_vector_type& v) { m_values[ 8] = v.x(); m_values[ 9] = v.y(); m_values[10] = v.z(); m_values[11] = type(0); } // v.w();
-		void set_t_vector(const m_vector_type& v) { m_values[12] = v.x(); m_values[13] = v.y(); m_values[14] = v.z(); m_values[15] = type(1); } // v.w();
+		// note: v.w() is ignored
+		void set_x_vector(const m_vector_type& v) { m_values[ 0] = v.x(); m_values[ 1] = v.y(); m_values[ 2] = v.z(); m_values[ 3] = type(0); }
+		void set_y_vector(const m_vector_type& v) { m_values[ 4] = v.x(); m_values[ 5] = v.y(); m_values[ 6] = v.z(); m_values[ 7] = type(0); }
+		void set_z_vector(const m_vector_type& v) { m_values[ 8] = v.x(); m_values[ 9] = v.y(); m_values[10] = v.z(); m_values[11] = type(0); }
+		void set_t_vector(const m_vector_type& v) { m_values[12] = v.x(); m_values[13] = v.y(); m_values[14] = v.z(); m_values[15] = type(1); }
 
 		void set_row_vector(unsigned int idx, const m_vector_type& v) { m_values[(idx    ) + 0] = v.x(); m_values[(idx    ) + 4] = v.y(); m_values[(idx    ) + 8] = v.z(); m_values[(idx    ) + 12] = v.w(); }
 		void set_col_vector(unsigned int idx, const m_vector_type& v) { m_values[(idx * 4) + 0] = v.x(); m_values[(idx * 4) + 1] = v.y(); m_values[(idx * 4) + 2] = v.z(); m_values[(idx * 4) +  3] = v.w(); }
 
 
-		t_matrix<type>& set_xz_vectors_from_y_vector(const m_vector_type& vy_new) {
-			set_y_vector(vy_new);
+		t_matrix<type>& set_xz_vectors_from_y_vector(const m_vector_type& vy) {
+			set_y_vector(vy);
 
 			// if y=<0,1,0> and z=<0,0,1>, sets x=<1,0,0> and z=<0,0,1>
-			const m_vector_type& vz_old = get_z_vector();
-			const m_vector_type  vx_new = (vy_new.outer_product(vz_old)).normalize();
-			const m_vector_type  vz_new = (vx_new.outer_product(vy_new)).normalize();
+			const m_vector_type& cvz = get_z_vector();
+			const m_vector_type   vx = (vy.outer_product(cvz)).normalize();
+			const m_vector_type   vz = (vx.outer_product( vy)).normalize();
 
-			// avoid degeneracy if abs(inner_product(vy_new, vz_old)) ~= 1
-			assert(std::fabs(vy_new.inner_product(vz_old)) < (type(1) - t_tuple<type>::eps_scalar()));
+			// avoid degeneracy if abs(inner_product(vy, cvz)) ~= 1
+			assert(std::fabs(vy.inner_product(cvz)) < (type(1) - t_tuple<type>::eps_scalar()));
 
-			set_x_vector(vx_new);
-			set_z_vector(vz_new);
+			set_x_vector(vx);
+			set_z_vector(vz);
 			return *this;
 		}
 
 
 		t_matrix<type>& add_values(const float values[LIBGEOM_MATRIX_SIZE]) {
-			assert(values != NULL);
 			for (unsigned int i = 0; i < LIBGEOM_MATRIX_SIZE; i += 4) {
 				m_values[i + 0] += values[i + 0];
 				m_values[i + 1] += values[i + 1];
@@ -383,7 +468,6 @@ namespace lib_math {
 		}
 
 		t_matrix<type>& set_values(const float values[LIBGEOM_MATRIX_SIZE]) {
-			assert(values != NULL);
 			for (unsigned int i = 0; i < LIBGEOM_MATRIX_SIZE; i += 4) {
 				m_values[i + 0] = values[i + 0];
 				m_values[i + 1] = values[i + 1];
@@ -393,16 +477,66 @@ namespace lib_math {
 			return *this;
 		}
 
-		void set_unit_values();
+		void set_null_values() {
+			for (unsigned int n = 0; n < LIBGEOM_MATRIX_SIZE; n += 4) {
+				m_values[n + 0] = type(0);
+				m_values[n + 1] = type(0);
+				m_values[n + 2] = type(0);
+				m_values[n + 3] = type(0);
+			}
+		}
+		void set_unit_values() {
+			for (unsigned int n = 0; n < LIBGEOM_MATRIX_SIZE; n += 4) {
+				m_values[n + 0] = type(n ==  0);
+				m_values[n + 1] = type(n ==  4);
+				m_values[n + 2] = type(n ==  8);
+				m_values[n + 3] = type(n == 12);
+			}
+		}
 		void print();
 
-		unsigned int is_identity(const type eps = t_tuple<type>::eps_scalar()) const;
-		unsigned int is_orthonormal(const type eps = t_tuple<type>::eps_scalar()) const;
+		unsigned int is_identity(const type eps = t_tuple<type>::eps_scalar()) const {
+			const m_vector_type& xv = get_x_vector();
+			const m_vector_type& yv = get_y_vector();
+			const m_vector_type& zv = get_z_vector();
+			const m_vector_type& tv = get_t_vector();
+
+			unsigned int n = 0;
+
+			n += ((!xv.equals(m_vector_type::x_axis_vector(), m_vector_type::x_axis_vector() * eps)) * (1 << 0));
+			n += ((!yv.equals(m_vector_type::y_axis_vector(), m_vector_type::y_axis_vector() * eps)) * (1 << 1));
+			n += ((!zv.equals(m_vector_type::z_axis_vector(), m_vector_type::z_axis_vector() * eps)) * (1 << 2));
+			n += ((!tv.equals(m_vector_type::w_axis_vector(), m_vector_type::w_axis_vector() * eps)) * (1 << 3));
+
+			return n;
+		}
+		unsigned int is_orthonormal(const type eps = t_tuple<type>::eps_scalar()) const {
+			const m_vector_type& xv = get_x_vector();
+			const m_vector_type& yv = get_y_vector();
+			const m_vector_type& zv = get_z_vector();
+
+			unsigned int n = 0;
+
+			// test orthogonality
+			n += ((std::fabs(xv.inner_product(yv)) >= eps) * (1 << 0));
+			n += ((std::fabs(yv.inner_product(zv)) >= eps) * (1 << 1));
+			n += ((std::fabs(xv.inner_product(zv)) >= eps) * (1 << 2));
+			// test normality
+			n += ((std::fabs(type(1) - xv.sq_magnit()) >= eps) * (1 << 3));
+			n += ((std::fabs(type(1) - yv.sq_magnit()) >= eps) * (1 << 4));
+			n += ((std::fabs(type(1) - zv.sq_magnit()) >= eps) * (1 << 5));
+
+			return n;
+		}
+
+
+		m_vector_type get_angles_rh(const type eps = t_tuple<type>::eps_scalar()) const;
+		m_vector_type get_angles_lh(const type eps = t_tuple<type>::eps_scalar()) const;
 
 		//	matrix_outer(v, w) =
-		//	  ( 0  -v3  v2)   (w1)
-		//	  ( v3  0  -v1) * (w2)
-		//	  (-v2  v1  0 )   (w3)
+		//	  (  0 -v3  v2)   (w1)
+		//	  ( v3   0 -v1) * (w2)
+		//	  (-v2  v1   0)   (w3)
 		//
 		// NOTE: useful to generalize this to higher dimensions
 		static m_vector_type outer_product(const m_vector_type& v, const m_vector_type& w) {
@@ -413,12 +547,9 @@ namespace lib_math {
 			return (m * w);
 		}
 
-		static const type* unit_values();
-		static const type* null_values();
-
 	private:
-		// stores elements in column-major order such that
-		// m_data[0...3] represents first column (x), etc.
+		// stores the elements in column-major order
+		// m_values[0...3] represents the x-axis, etc
 		type m_values[LIBGEOM_MATRIX_SIZE];
 	};
 

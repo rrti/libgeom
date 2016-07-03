@@ -5,20 +5,6 @@
 #include "./vector.hpp"
 
 namespace lib_math {
-	static const float null_values_44f[4 * 4] = {
-		0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f,
-	};
-	static const float unit_values_44f[4 * 4] = {
-		1.0f, 0.0f, 0.0f, 0.0f, // 1st column
-		0.0f, 1.0f, 0.0f, 0.0f, // 2nd column
-		0.0f, 0.0f, 1.0f, 0.0f, // 3rd column
-		0.0f, 0.0f, 0.0f, 1.0f, // 4th column
-	};
-
-
 	#if 0
 	template<> t_matrix44f t_matrix44f::invert_general(const float eps) const {
 		t_matrix44f mat;
@@ -47,23 +33,89 @@ namespace lib_math {
 	}
 	#endif
 
-	template<> void t_matrix44f::set_unit_values() {
-		#if 0
-		for (unsigned int n = 0; n < 4 * 4; n += 4) {
-			m_values[n + 0] = float((n + 0) ==  0);
-			m_values[n + 1] = float((n + 1) ==  5);
-			m_values[n + 2] = float((n + 2) == 10);
-			m_values[n + 3] = float((n + 3) == 15);
+
+	// extracts the rotation angles from a matrix
+	//
+	// this assumes a right-handed coordinate system; if called
+	// on a left-handed matrix the angles {a,b,c} returned here
+	// will correspond to the effects of rotate_zyx(-a, -b, -c)
+	// instead of rotate_xyz(a, b, c) in the RH case
+	//
+	// however, since
+	//
+	//   1)           rotate_zyx(-a, -b, -c)  == transpose(rotate_xyz(a, b, c))
+	//   2) transpose(rotate_zyx(-a, -b, -c)) ==           rotate_xyz(a, b, c)
+	//
+	// and any internal rotation A(a)B(b)C(c) equals the external
+	// rotation C(c)B(b)A(a) we can easily convert them back to a
+	// left-handed form (left-handed coordinate system is used by
+	// default)
+	//
+	// all angles are in radians and returned in PYR order
+	//
+	template<> t_vector4f t_matrix44f::get_angles_rh(const float eps) const {
+		t_vector4f angles[2];
+
+		float cos_yaw[2] = {0.0f, 0.0f};
+		float ang_sum[2] = {0.0f, 0.0f};
+
+		if (square(eps) > std::fabs(m_values[0 * 4 + 2] + 1.0f)) {
+			// x.z == -1 (yaw=PI/2) means gimbal lock between X and Z
+			angles[0][R_AXIS_IDX] = (       0.0f);
+			angles[0][Y_AXIS_IDX] = (M_PI * 0.5f);
+			angles[0][P_AXIS_IDX] = (angles[0][R_AXIS_IDX] + std::atan2(m_values[1 * 4 + 0], m_values[2 * 4 + 0]));
+
+			return angles[0];
 		}
-		#else
-		for (unsigned int n = 0; n < 4 * 4; n += 4) {
-			m_values[n + 0] = float(n ==  0);
-			m_values[n + 1] = float(n ==  4);
-			m_values[n + 2] = float(n ==  8);
-			m_values[n + 3] = float(n == 12);
+
+		if (square(eps) > std::fabs(m_values[0 * 4 + 2] - 1.0f)) {
+			// x.z == 1 (yaw=-PI/2) means gimbal lock between X and Z
+			angles[0][R_AXIS_IDX] =  (       0.0f);
+			angles[0][Y_AXIS_IDX] = -(M_PI * 0.5f);
+			angles[0][P_AXIS_IDX] = (-angles[0][R_AXIS_IDX] + std::atan2(-m_values[1 * 4 + 0], -m_values[2 * 4 + 0]));
+
+			return angles[0];
 		}
-		#endif
+
+		// yaw angles (theta)
+		//
+		//   angles[i][P] :=   psi := Pitch := X-angle
+		//   angles[i][Y] := theta :=   Yaw := Y-angle
+		//   angles[i][R] :=   phi :=  Roll := Z-angle
+		//
+		angles[0][Y_AXIS_IDX] = -std::asin(m_values[0 * 4 + 2]);
+		angles[1][Y_AXIS_IDX] = (M_PI - angles[0][Y_AXIS_IDX]);
+
+		// yaw cosines
+		cos_yaw[0] = std::cos(angles[0][Y_AXIS_IDX]);
+		cos_yaw[1] = std::cos(angles[1][Y_AXIS_IDX]);
+
+		// psi angles (pitch)
+		angles[0][P_AXIS_IDX] = std::atan2((m_values[1 * 4 + 2] / cos_yaw[0]), (m_values[2 * 4 + 2] / cos_yaw[0]));
+		angles[1][P_AXIS_IDX] = std::atan2((m_values[1 * 4 + 2] / cos_yaw[1]), (m_values[2 * 4 + 2] / cos_yaw[1]));
+		// phi angles (roll)
+		angles[0][R_AXIS_IDX] = std::atan2((m_values[0 * 4 + 1] / cos_yaw[0]), (m_values[0 * 4 + 0] / cos_yaw[0]));
+		angles[1][R_AXIS_IDX] = std::atan2((m_values[0 * 4 + 1] / cos_yaw[1]), (m_values[0 * 4 + 0] / cos_yaw[1]));
+
+		ang_sum[0] = (m_vector_type::ones_vector()).inner_product(angles[0].abs()); // |p0|+|y0|+|r0|
+		ang_sum[1] = (m_vector_type::ones_vector()).inner_product(angles[1].abs()); // |p1|+|y1|+|r1|
+
+		// two solutions exist; choose the "shortest" rotation
+		return angles[ang_sum[0] > ang_sum[1]];
 	}
+
+	template<> t_vector4f t_matrix44f::get_angles_lh(const float eps) const {
+		t_matrix44f matrix = *this;
+		t_vector4f angles;
+		// we are given a left-handed matrix (either xyz_int or zyx_ext), but the above
+		// function expects it to be right-handed which is solved simply by transposing
+		// since (A(a)*B(b)*C(c))^T = (C(-c)^T)*(B(-b)^T)*(A(-a)^T)
+		matrix = std::move(matrix.transpose());
+		angles = std::move(matrix.get_angles_rh(eps));
+		return angles;
+	}
+
+
 	template<> void t_matrix44f::print() {
 		printf("\n X      Y      Z      T\n");
 		for (unsigned int n = 0; n < LIBGEOM_MATRIX_SIZE; n += 4) { printf(" %.3f ", m_values[n]); } printf("\n"); // 1st row
@@ -72,41 +124,5 @@ namespace lib_math {
 		for (unsigned int n = 3; n < LIBGEOM_MATRIX_SIZE; n += 4) { printf(" %.3f ", m_values[n]); } printf("\n"); // 4th row
 		printf("\n");
 	}
-
-
-	template<> unsigned int t_matrix44f::is_orthonormal(const float eps) const {
-		const m_vector_type& xv = get_x_vector();
-		const m_vector_type& yv = get_y_vector();
-		const m_vector_type& zv = get_z_vector();
-
-		// test orthogonality
-		if (std::fabs(xv.inner_product(yv)) >= eps) { return 1; }
-		if (std::fabs(yv.inner_product(zv)) >= eps) { return 2; }
-		if (std::fabs(xv.inner_product(zv)) >= eps) { return 3; }
-		// test normality
-		if (std::fabs(1.0f - xv.sq_magnit()) >= eps) { return 4; }
-		if (std::fabs(1.0f - yv.sq_magnit()) >= eps) { return 5; }
-		if (std::fabs(1.0f - zv.sq_magnit()) >= eps) { return 6; }
-
-		return 0;
-	}
-
-	template<> unsigned int t_matrix44f::is_identity(const float eps) const {
-		const m_vector_type& xv = get_x_vector();
-		const m_vector_type& yv = get_y_vector();
-		const m_vector_type& zv = get_z_vector();
-		const m_vector_type& tv = get_t_vector();
-
-		if (!xv.equals(m_vector_type::x_axis_vector(), m_vector_type::x_axis_vector() * eps)) return 1;
-		if (!yv.equals(m_vector_type::y_axis_vector(), m_vector_type::y_axis_vector() * eps)) return 2;
-		if (!zv.equals(m_vector_type::z_axis_vector(), m_vector_type::z_axis_vector() * eps)) return 3;
-		if (!tv.equals(m_vector_type::w_axis_vector(), m_vector_type::w_axis_vector() * eps)) return 4;
-
-		return 0;
-	}
-
-
-	template<> const float* t_matrix44f::unit_values() { return &unit_values_44f[0]; }
-	template<> const float* t_matrix44f::null_values() { return &null_values_44f[0]; }
 };
 

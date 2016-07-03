@@ -28,6 +28,20 @@ namespace lib_math {
 	template<typename type> type clamp(type v, type vmin, type vmax) { return (std::max<type>(vmin, std::min<type>(vmax, v))); }
 	template<typename type> type square(type v) { return (v * v); }
 
+	// clamp an angle in radians to the range [0, 2PI]
+	template<typename type> type clamp_angle_rad(type raw_angle) {
+		constexpr float max_angle = M_PI + M_PI;
+		raw_angle = std::fmod(raw_angle, max_angle);
+		raw_angle += (max_angle * (raw_angle < type(0)));
+		return raw_angle;
+	}
+	// clamp an angle in degrees to the range [0, 360]
+	template<typename type> type clamp_angle_deg(type raw_angle) {
+		constexpr float deg_to_rad = M_PI / 180.0f;
+		constexpr float rad_to_deg = 180.0f / M_PI;
+		return (clamp_angle_rad(raw_angle * deg_to_rad) * rad_to_deg);
+	}
+
 	// behaves as relative-tolerance comparison when abs(a) and abs(b)
 	// are both > 1, otherwise behaves as absolute-tolerance comparison
 	// (alternatively use "abs(a - b) <= (eps * (1 + abs(a) + abs(b)))")
