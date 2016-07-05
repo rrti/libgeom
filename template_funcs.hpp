@@ -47,7 +47,7 @@ namespace lib_math {
 	// (alternatively use "abs(a - b) <= (eps * (1 + abs(a) + abs(b)))")
 	//
 	template<typename type> bool fp_eq(type a, type b, type eps) {
-		return (std::abs(a - b) <= (eps * max3<type>(std::abs(a), std::abs(b), type(1))));
+		return (a == b || std::abs(a - b) <= (eps * max3<type>(std::abs(a), std::abs(b), type(1))));
 	}
 
 	// unlike sign(), treats zero specially
