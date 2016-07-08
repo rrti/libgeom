@@ -131,6 +131,10 @@ namespace lib_math {
 
 			return m_r;
 		}
+		// matrix - matrix = matrix
+		t_matrix<type> operator - (const t_matrix<type>& m) const {
+			return ((*this) + (m * type(-1)));
+		}
 
 		/*
 		t_matrix<type>  operator +  (const t_matrix<type>& m) const { t_matrix<type> mr(false); mr.add_values(m_values); mr.add_values(m.get_values()); return    mr; }

@@ -75,7 +75,7 @@ namespace lib_math {
 
 	template<typename type> type vec_sum(const std::vector<type>& v) {
 		type r = type();
-		for (unsigned int n = 0; n < v.size(); n++) {
+		for (size_t n = 0; n < v.size(); n++) {
 			r += v[n];
 		}
 		return r;
