@@ -234,6 +234,16 @@ namespace lib_math {
 		t_vector<type> max(const t_vector<type>& v) const { return (t_vector<type>(std::max<type>(x(), v.x()), std::max<type>(y(), v.y()), std::max<type>(z(), v.z()), w())); }
 		t_vector<type> min(const t_vector<type>& v) const { return (t_vector<type>(std::min<type>(x(), v.x()), std::min<type>(y(), v.y()), std::min<type>(z(), v.z()), w())); }
 
+		t_vector<type> signs() const { return (t_vector<type>(signum(x()), signum(y()), signum(z()), signum(w()))); }
+		t_vector<type> clamp(const t_vector<type>& vmin, const t_vector<type>& vmax) const {
+		t_vector<type> r;
+			r.x() = clamp(x(), vmin.x(), vmax.x());
+			r.y() = clamp(y(), vmin.y(), vmax.y());
+			r.z() = clamp(z(), vmin.z(), vmax.z());
+			r.w() = clamp(w(), vmin.w(), vmax.w());
+			return r;
+		}
+
 
 		t_vector<type>      randomize(std::function<type(void)>& rng) const { return (t_vector<type>((rng() * 2) - 1, (rng() * 2) - 1, (rng() * 2) - 1)); }
 		t_vector<type> unit_randomize(std::function<type(void)>& rng, const type eps = t_tuple<type>::eps_scalar()) const {
