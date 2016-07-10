@@ -75,8 +75,8 @@ namespace lib_math {
 		}
 
 		// cf. point::to_vector
-		t_tuple<type> to_tuple() const { return (t_tuple<type>(*this)); }
-		t_point<type> to_point() const { return (t_point<type>::zero_point() + (*this)); }
+		t_tuple<type> to_tuple() const {                   return (t_tuple<type>(                 *this)); }
+		t_point<type> to_point() const { assert(w() == 0); return (t_point<type>::zero_point() + (*this)); }
 
 		// inner product is only defined between vectors and vectors
 		// w-components are normally zero so they do not contribute!

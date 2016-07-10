@@ -48,7 +48,7 @@ namespace lib_math {
 
 		// cf. vector::to_point
 		t_tuple<type> to_tuple() const { return (t_tuple<type>(*this)); }
-		t_vector<type> to_vector() const { return ((*this) - zero_point()); }
+		t_vector<type> to_vector() const { assert(w() == 1); return ((*this) - zero_point()); }
 
 
 		unsigned int hash(const t_point<type>& mask = ones_point()) const {
