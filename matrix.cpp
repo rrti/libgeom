@@ -116,7 +116,7 @@ namespace lib_math {
 	}
 
 
-	template<> void t_matrix44f::print() {
+	template<> void t_matrix44f::print() const {
 		printf("\n X      Y      Z      T\n");
 		for (unsigned int n = 0; n < LIBGEOM_MATRIX_SIZE; n += 4) { printf(" %.3f ", m_values[n]); } printf("\n"); // 1st row
 		for (unsigned int n = 1; n < LIBGEOM_MATRIX_SIZE; n += 4) { printf(" %.3f ", m_values[n]); } printf("\n"); // 2nd row

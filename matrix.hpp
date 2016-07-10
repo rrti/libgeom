@@ -497,7 +497,7 @@ namespace lib_math {
 				m_values[n + 3] = type(n == 12);
 			}
 		}
-		void print();
+		void print() const;
 
 		unsigned int is_identity(const type eps = t_tuple<type>::eps_scalar()) const {
 			const m_vector_type& xv = get_x_vector();
