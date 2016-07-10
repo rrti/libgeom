@@ -51,11 +51,19 @@ namespace lib_math {
 	}
 
 	// unlike sign(), treats zero specially
+	#if 0
 	template<typename type> type signum(type v) {
 		if (v > type(0)) return (type( 1));
 		if (v < type(0)) return (type(-1));
 		return (type(0));
 	}
+	#else
+	template<typename type> type signum(type v) {
+		const int gtz = (v >  type(0)) * 2 - 1;
+		const int eqz = (v == type(0)) * 1;
+		return (gtz + eqz);
+	}
+	#endif
 
 	template<typename type> type round(type v, size_t n) {
 		if (n > 0) {
