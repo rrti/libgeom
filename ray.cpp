@@ -53,8 +53,10 @@ namespace lib_math {
 		return r;
 	}
 	t_ray t_ray::transform(const m_matrix_type& matrix) const {
+		assert(m_pos.w() == m_coor_type(1));
+
 		t_ray r;
-		r.m_pos = matrix * m_pos;
+		r.m_pos = matrix * (m_pos        );
 		r.m_dir = matrix * (m_pos + m_dir) - r.m_pos;
 		r.m_len = m_len;
 		return r;
