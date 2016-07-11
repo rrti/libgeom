@@ -71,7 +71,7 @@ namespace lib_math {
 			const t_vector<type> xv = t_vector<type>(x() * v.x(), y() * v.x(), z() * v.x(), 0);
 			const t_vector<type> yv = t_vector<type>(x() * v.y(), y() * v.y(), z() * v.y(), 0);
 			const t_vector<type> zv = t_vector<type>(x() * v.z(), y() * v.z(), z() * v.z(), 0);
-			return (t_matrix<type>(xv, yv, zv, t_point<type>::zero_point()));
+			return (t_matrix<type>(xv, yv, zv, t_vector<type>::w_axis_vector()));
 		}
 
 		// cf. point::to_vector
