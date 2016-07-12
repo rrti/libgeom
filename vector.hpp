@@ -317,6 +317,7 @@ namespace lib_math {
 		type m_values[LIBGEOM_VECTOR_SIZE];
 	};
 
+
 	typedef t_vector< int32_t> t_vector4i;
 	typedef t_vector<uint32_t> t_vector4ui;
 
@@ -325,6 +326,16 @@ namespace lib_math {
 
 	typedef t_vector< float> t_vector4f;
 	typedef t_vector<double> t_vector4d;
+
+	// aliases for less typing
+	typedef t_vector4i  t_vec4i;
+	typedef t_vector4ui t_vec4ui;
+
+	typedef t_vector4li  t_vec4li;
+	typedef t_vector4lui t_vec4lui;
+
+	typedef t_vector4f t_vec4f;
+	typedef t_vector4d t_vec4d;
 };
 
 #endif

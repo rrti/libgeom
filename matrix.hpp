@@ -557,8 +557,13 @@ namespace lib_math {
 		type m_values[LIBGEOM_MATRIX_SIZE];
 	};
 
+
 	typedef t_matrix< float> t_matrix44f;
 	typedef t_matrix<double> t_matrix44d;
+
+	// aliases for less typing
+	typedef t_matrix44f t_mat44f;
+	typedef t_matrix44d t_mat44d;
 };
 
 #endif

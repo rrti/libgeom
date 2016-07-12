@@ -89,6 +89,7 @@ namespace lib_math {
 		type m_values[LIBGEOM_POINT_SIZE];
 	};
 
+
 	typedef t_point< int32_t> t_point4i;
 	typedef t_point<uint32_t> t_point4ui;
 
@@ -97,6 +98,16 @@ namespace lib_math {
 
 	typedef t_point< float> t_point4f;
 	typedef t_point<double> t_point4d;
+
+	// aliases for less typing
+	typedef t_point4i  t_pos4i;
+	typedef t_point4ui t_pos4ui;
+
+	typedef t_point4li  t_pos4li;
+	typedef t_point4lui t_pos4lui;
+
+	typedef t_point4f t_pos4f;
+	typedef t_point4d t_pos4d;
 };
 
 #endif

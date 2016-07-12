@@ -116,6 +116,7 @@ namespace lib_math {
 		type m_values[LIBGEOM_TUPLE_SIZE];
 	};
 
+
 	typedef t_tuple< int32_t> t_tuple4i;
 	typedef t_tuple<uint32_t> t_tuple4ui;
 
@@ -124,6 +125,16 @@ namespace lib_math {
 
 	typedef t_tuple< float> t_tuple4f;
 	typedef t_tuple<double> t_tuple4d;
+
+	// aliases for less typing
+	typedef t_tuple4i  t_tup4i;
+	typedef t_tuple4ui t_tup4ui;
+
+	typedef t_tuple4li  t_tup4li;
+	typedef t_tuple4lui t_tup4lui;
+
+	typedef t_tuple4f t_tup4f;
+	typedef t_tuple4d t_tup4d;
 };
 
 #endif
