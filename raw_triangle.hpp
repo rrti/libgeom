@@ -91,6 +91,8 @@ namespace lib_math {
 		// either calculated or set via normal.w
 		m_coor_type m_radius;
 	};
+
+	typedef t_raw_triangle t_raw_tri;
 };
 
 #endif

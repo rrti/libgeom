@@ -83,6 +83,8 @@ namespace lib_math {
 
 		m_coor_type m_radius;
 	};
+
+	typedef t_idx_triangle t_idx_tri;
 };
 
 #endif
