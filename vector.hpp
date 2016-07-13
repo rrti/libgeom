@@ -85,8 +85,12 @@ namespace lib_math {
 			return ((x() * v.x() * mask.x()) + (y() * v.y() * mask.y()) + (z() * v.z() * mask.z()) + (w() * v.w() * mask.w()));
 		}
 
-		type sq_magnit(const t_vector<type>& mask = xyz_axis_vector()) const { return (inner_product(*this, mask)); }
-		type    magnit(const t_vector<type>& mask = xyz_axis_vector()) const { return (lib_math::sqrt(sq_magnit(mask))); }
+		type sq_magnit(const t_vector<type>& mask = xyz_axis_vector()) const { return (sq_len(mask)); }
+		type    magnit(const t_vector<type>& mask = xyz_axis_vector()) const { return (   len(mask)); }
+		type sq_length(const t_vector<type>& mask = xyz_axis_vector()) const { return (sq_len(mask)); }
+		type    length(const t_vector<type>& mask = xyz_axis_vector()) const { return (   len(mask)); }
+		type sq_len   (const t_vector<type>& mask = xyz_axis_vector()) const { return (inner_product(*this, mask)); }
+		type    len   (const t_vector<type>& mask = xyz_axis_vector()) const { return (lib_math::sqrt(sq_len(mask))); }
 
 		#if 0
 		type dot_xy(const t_vector<type>& v) const { return inner_product(v, xy_axis_vector()); }
