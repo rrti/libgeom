@@ -283,9 +283,9 @@ namespace lib_math {
 		// rotate in X,Y,Z order [Rext = R(Z)*R(Y)*R(X), Rint = R(X)*R(Y)*R(Z)]
 		t_matrix<type> rotate_xyz_ext(const m_vector_type angles) const {
 			const t_matrix<type> m  = *this;
-			const t_matrix<type> rx = std::move(rotate_x(angles[P_AXIS_IDX]));
-			const t_matrix<type> ry = std::move(rotate_y(angles[Y_AXIS_IDX]));
-			const t_matrix<type> rz = std::move(rotate_z(angles[R_AXIS_IDX]));
+			const t_matrix<type> rx = std::move(compose_x_rotation(angles[P_AXIS_IDX]));
+			const t_matrix<type> ry = std::move(compose_y_rotation(angles[Y_AXIS_IDX]));
+			const t_matrix<type> rz = std::move(compose_z_rotation(angles[R_AXIS_IDX]));
 			return (m * (rz * ry * rx));
 		}
 		t_matrix<type> rotate_xyz_int(const m_vector_type angles) const {
@@ -296,9 +296,9 @@ namespace lib_math {
 		// rotate in Y,X,Z order [Rext = R(Z)*R(X)*R(Y), Rint = R(Y)*R(X)*R(Z)]
 		t_matrix<type> rotate_yxz_ext(const m_vector_type angles) const {
 			const t_matrix<type> m  = *this;
-			const t_matrix<type> rx = std::move(rotate_x(angles[P_AXIS_IDX]));
-			const t_matrix<type> ry = std::move(rotate_y(angles[Y_AXIS_IDX]));
-			const t_matrix<type> rz = std::move(rotate_z(angles[R_AXIS_IDX]));
+			const t_matrix<type> rx = std::move(compose_x_rotation(angles[P_AXIS_IDX]));
+			const t_matrix<type> ry = std::move(compose_y_rotation(angles[Y_AXIS_IDX]));
+			const t_matrix<type> rz = std::move(compose_z_rotation(angles[R_AXIS_IDX]));
 			return (m * (rz * rx * ry));
 		}
 		t_matrix<type> rotate_yxz_int(const m_vector_type angles) const {
@@ -309,9 +309,9 @@ namespace lib_math {
 		// rotate in Z,X,Y order [Rext = R(Y)*R(X)*R(Z), Rint = R(Z)*R(X)*R(Y)]
 		t_matrix<type> rotate_zxy_ext(const m_vector_type angles) const {
 			const t_matrix<type> m  = *this;
-			const t_matrix<type> rx = std::move(rotate_x(angles[P_AXIS_IDX]));
-			const t_matrix<type> ry = std::move(rotate_y(angles[Y_AXIS_IDX]));
-			const t_matrix<type> rz = std::move(rotate_z(angles[R_AXIS_IDX]));
+			const t_matrix<type> rx = std::move(compose_x_rotation(angles[P_AXIS_IDX]));
+			const t_matrix<type> ry = std::move(compose_y_rotation(angles[Y_AXIS_IDX]));
+			const t_matrix<type> rz = std::move(compose_z_rotation(angles[R_AXIS_IDX]));
 			return (m * (ry * rx * rz));
 		}
 		t_matrix<type> rotate_zxy_int(const m_vector_type angles) const {
@@ -322,9 +322,9 @@ namespace lib_math {
 		// rotate in Z,Y,X order [Rext = R(X)*R(Y)*R(Z), Rint = R(Z)*R(Y)*R(X)]
 		t_matrix<type> rotate_zyx_ext(const m_vector_type angles) const {
 			const t_matrix<type> m  = *this;
-			const t_matrix<type> rx = std::move(rotate_x(angles[P_AXIS_IDX]));
-			const t_matrix<type> ry = std::move(rotate_y(angles[Y_AXIS_IDX]));
-			const t_matrix<type> rz = std::move(rotate_z(angles[R_AXIS_IDX]));
+			const t_matrix<type> rx = std::move(compose_x_rotation(angles[P_AXIS_IDX]));
+			const t_matrix<type> ry = std::move(compose_y_rotation(angles[Y_AXIS_IDX]));
+			const t_matrix<type> rz = std::move(compose_z_rotation(angles[R_AXIS_IDX]));
 			return (m * (rx * ry * rz));
 		}
 		t_matrix<type> rotate_zyx_int(const m_vector_type angles) const {
@@ -332,8 +332,14 @@ namespace lib_math {
 		}
 
 
+		t_matrix<type> rotate_x(type angle) const { return ((*this) * compose_x_rotation(angle)); }
+		t_matrix<type> rotate_y(type angle) const { return ((*this) * compose_y_rotation(angle)); }
+		t_matrix<type> rotate_z(type angle) const { return ((*this) * compose_z_rotation(angle)); }
+
+
 		// rotate in local or global YZ-plane; phi or alpha radians
-		t_matrix<type> rotate_x(type angle) const {
+		// constructs but does *not* apply Rx, so it can be chained
+		static t_matrix<type> compose_x_rotation(type angle) {
 			angle = clamp_angle_rad(angle);
 
 			// Rx = ([X = [1, 0, 0], Y = [0, ca, -sa], Z = [0, sa, ca]])
@@ -343,11 +349,12 @@ namespace lib_math {
 			t_matrix<type> rm;
 			rm[ 5] = +ca; rm[ 9] = +sa;
 			rm[ 6] = -sa; rm[10] = +ca;
-			return ((*this) * rm);
+			return rm;
 		}
 
 		// rotate in local or global XZ-plane; theta or beta radians
-		t_matrix<type> rotate_y(type angle) const {
+		// constructs but does *not* apply Ry, so it can be chained
+		static t_matrix<type> compose_y_rotation(type angle) {
 			angle = clamp_angle_rad(angle);
 
 			// Ry = ([X = [ca, 0, sa], Y = [0, 1, 0], Z = [-sa, 0, ca]])
@@ -357,11 +364,12 @@ namespace lib_math {
 			t_matrix<type> rm;
 			rm[ 0] = +ca; rm[ 8] = -sa;
 			rm[ 2] = +sa; rm[10] = +ca;
-			return ((*this) * rm);
+			return rm;
 		}
 
 		// rotate in local or global XY-plane; psi or gamma radians
-		t_matrix<type> rotate_z(type angle) const {
+		// constructs but does *not* apply Rz, so it can be chained
+		static t_matrix<type> compose_z_rotation(type angle) {
 			angle = clamp_angle_rad(angle);
 
 			// Rz = ([X = [ca, -sa, 0], Y = [sa, ca, 0], Z = [0, 0, 1]])
@@ -371,7 +379,7 @@ namespace lib_math {
 			t_matrix<type> rm;
 			rm[0] = +ca; rm[4] = +sa;
 			rm[1] = -sa; rm[5] = +ca;
-			return ((*this) * rm);
+			return rm;
 		}
 
 
@@ -392,10 +400,9 @@ namespace lib_math {
 			const m_vector_type vx = (rot_axis.outer_product(t_vector<type>::y_axis_vector())).normalize();
 			const m_vector_type vy = (rot_axis.outer_product(                           vx  )).normalize();
 
-			const t_matrix<type> i;
 			const t_matrix<type> m_fwd = std::move(t_matrix<type>(vx, vy, rot_axis));
 			const t_matrix<type> m_inv = std::move(m_fwd.invert_affine());
-			const t_matrix<type> m_rot = std::move(i.rotate_z(angle));
+			const t_matrix<type> m_rot = std::move(t_matrix<type>::compose_z_rotation(angle));
 
 			return ((*this) * (m_fwd * m_rot * m_inv));
 		}
