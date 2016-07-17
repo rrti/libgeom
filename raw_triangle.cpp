@@ -191,8 +191,11 @@ namespace lib_math {
 	unsigned int t_raw_triangle::intersect_triangle(const t_raw_triangle& triangle, m_point_type* points, const m_coor_type eps) const {
 		unsigned int n = 0;
 
-		// early-out
+		// early-out #1; bail if bounding-spheres do not overlap
 		if ((calc_midpoint() - triangle.calc_midpoint()).sq_magnit() > lib_math::square(m_radius + triangle.get_radius()))
+			return n;
+		// early-out #2; bail if <this> does not intersect <triangle>'s plane
+		if (!intersect_plane(triangle.to_plane()))
 			return n;
 
 		// first test the parallel case; if triangles overlap and

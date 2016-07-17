@@ -4,6 +4,7 @@
 #include "./tuple.hpp"
 #include "./point.hpp"
 #include "./vector.hpp"
+#include "./plane.hpp"
 
 namespace lib_math {
 	template<typename type> struct t_matrix;
@@ -30,6 +31,15 @@ namespace lib_math {
 
 		t_raw_triangle& invert_winding();
 		t_raw_triangle transform(const m_matrix_type& matrix) const;
+
+		t_plane to_plane() const {
+			t_vec4f n;
+			n.x() = m_normal.x();
+			n.y() = m_normal.y();
+			n.z() = m_normal.z();
+			n.w() = m_normal.inner_product(m_verts[0] - t_pos4f::zero_point());
+			return (t_plane(n));
+		}
 
 		m_point_type calc_midpoint() const {
 			m_point_type mid_point;
