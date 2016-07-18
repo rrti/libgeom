@@ -84,6 +84,7 @@ namespace lib_math {
 		return ((p_a + p_b + p_c) / m_coor_type(3));
 	}
 
+	#if 1
 	bool t_raw_triangle::point_in_triangle(const m_point_type& point, const m_coor_type eps) const {
 		// construct planes (parallel to m_normal) for each triangle
 		// edge (note that we can not use <point> itself to do this)
@@ -109,6 +110,21 @@ namespace lib_math {
 
 		return (above_ab_plane == above_bc_plane && above_bc_plane == above_ca_plane);
 	}
+	#else
+	bool t_raw_triangle::point_in_triangle(const m_point_type& point, const m_coor_type eps) const {
+		const m_vector_type vba = m_verts[1] - m_verts[0];
+		const m_vector_type vca = m_verts[2] - m_verts[0];
+		const m_vector_type vp  =      point - m_verts[0];
+
+		const float alpha = vba.inner_product(vp); // cos(angle(vba,vp)) * len(vba) * len(vp)
+		const float gamma = vca.inner_product(vp); // cos(angle(vca,vp)) * len(vca) * len(vp)
+
+		const bool b0 = (alpha >= 0.0f && alpha <= vba.sq_len()); // [0,1] * len(vba) * len(vba)
+		const bool b1 = (gamma >= 0.0f && gamma <= vca.sq_len()); // [0,1] * len(vca) * len(vca)
+		const bool b2 = ((alpha + gamma) <= (vba.sq_len() + vca.sq_len())); // 1 * (len(vba) + len(vca))
+		return (b0 && b1 && b2);
+	}
+	#endif
 
 	// test if <this> intersects <plane>
 	// TODO: return intersection-points
