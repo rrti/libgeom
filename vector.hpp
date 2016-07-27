@@ -241,10 +241,10 @@ namespace lib_math {
 		t_vector<type> signs() const { return (t_vector<type>(signum(x()), signum(y()), signum(z()), signum(w()))); }
 		t_vector<type> clamp(const t_vector<type>& vmin, const t_vector<type>& vmax) const {
 		t_vector<type> r;
-			r.x() = clamp(x(), vmin.x(), vmax.x());
-			r.y() = clamp(y(), vmin.y(), vmax.y());
-			r.z() = clamp(z(), vmin.z(), vmax.z());
-			r.w() = clamp(w(), vmin.w(), vmax.w());
+			r.x() = lib_math::clamp(x(), vmin.x(), vmax.x());
+			r.y() = lib_math::clamp(y(), vmin.y(), vmax.y());
+			r.z() = lib_math::clamp(z(), vmin.z(), vmax.z());
+			r.w() = lib_math::clamp(w(), vmin.w(), vmax.w());
 			return r;
 		}
 
