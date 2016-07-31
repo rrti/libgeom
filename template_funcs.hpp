@@ -23,7 +23,6 @@ namespace lib_math {
 	template<typename type> type     sqrt(type v) { return (               std::sqrt(v)); }
 	template<typename type> type inv_sqrt(type v) { return (type(1) / lib_math::sqrt(v)); }
 
-	template<typename type> type abs(type v) { return (std::max(v, -v)); }
 	template<typename type> type min3(type a, type b, type c) { return (std::min<type>(a, std::min<type>(b, c))); }
 	template<typename type> type max3(type a, type b, type c) { return (std::max<type>(a, std::max<type>(b, c))); }
 	template<typename type> type sign(type v) { return ((v >= type(0)) * type(2) - type(1)); }
@@ -31,6 +30,10 @@ namespace lib_math {
 	template<typename type> type norm(type v, type vmin, type vmax) { return ((v - vmin) / (vmax - vmin)); }
 	template<typename type> type clamp(type v, type vmin, type vmax) { return (std::max<type>(vmin, std::min<type>(vmax, v))); }
 	template<typename type> type square(type v) { return (v * v); }
+
+	template<typename type> type abss(type v) { return (lib_math::sign(v) * v); }
+	template<typename type> type absl(type v) { return (lib_math::lerp(v, -v, v < type(0))); }
+	template<typename type> type absm(type v) { return (std::max(v, -v)); }
 
 
 	template<typename type> t_vector<type> vec_slerp_aux(
