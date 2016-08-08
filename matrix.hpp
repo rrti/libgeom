@@ -450,20 +450,53 @@ namespace lib_math {
 		void set_row_vector(unsigned int idx, const m_vector_type& v) { m_values[(idx    ) + 0] = v.x(); m_values[(idx    ) + 4] = v.y(); m_values[(idx    ) + 8] = v.z(); m_values[(idx    ) + 12] = v.w(); }
 		void set_col_vector(unsigned int idx, const m_vector_type& v) { m_values[(idx * 4) + 0] = v.x(); m_values[(idx * 4) + 1] = v.y(); m_values[(idx * 4) + 2] = v.z(); m_values[(idx * 4) +  3] = v.w(); }
 
+		t_matrix<type>& set_vectors(const m_vector_type& vp, unsigned int idx = 2) {
+			m_vector_type va;
 
-		t_matrix<type>& set_xz_vectors_from_y_vector(const m_vector_type& vy) {
-			set_y_vector(vy);
+			// given a primary axis <vp> (interpreted as a rotated
+			// identity-matrix x-, y-, or z-vector), construct the
+			// orthogonal secondary and tertiary vectors through an
+			// auxiliary
+			//
+			// if <vp> is +x, secondary is +y and tertiary is +z
+			// if <vp> is +y, secondary is +z and tertiary is +x
+			// if <vp> is +z, secondary is +x and tertiary is +y
+			// (note the cyclicity)
+			switch (idx) {
+				case 0: { va = m_vector_type::z_axis_vector(); } break;
+				case 1: { va = m_vector_type::x_axis_vector(); } break;
+				case 2: { va = m_vector_type::y_axis_vector(); } break;
+				default: { assert(false); } break;
+			}
 
-			// if y=<0,1,0> and z=<0,0,1>, sets x=<1,0,0> and z=<0,0,1>
-			const m_vector_type& cvz = get_z_vector();
-			const m_vector_type   vx = (vy.outer_product(cvz)).normalize();
-			const m_vector_type   vz = (vx.outer_product( vy)).normalize();
+			// auxiliary should not be colinear with primary
+			assert(std::fabs(va.inner(vp)) < type(1));
 
-			// avoid degeneracy if abs(inner_product(vy, cvz)) ~= 1
-			assert(std::fabs(vy.inner_product(cvz)) < (type(1) - t_tuple<type>::eps_scalar()));
+			// v.outer(w) always points to the local "right"
+			const m_vector_type vs = (vp.outer_product(va)).normalize();
+			const m_vector_type vt = (vs.outer_product(vp)).normalize();
 
-			set_x_vector(vx);
-			set_z_vector(vz);
+			switch (idx) {
+				case 0: {
+					set_x_vector( vp);
+					set_y_vector(-vs);
+					set_z_vector( vt);
+				} break;
+				case 1: {
+					set_x_vector( vt);
+					set_y_vector( vp);
+					set_z_vector(-vs);
+				} break;
+				case 2: {
+					set_x_vector(-vs);
+					set_y_vector( vt);
+					set_z_vector( vp);
+				} break;
+				default: {
+					assert(false);
+				} break;
+			}
+
 			return *this;
 		}
 
@@ -504,7 +537,7 @@ namespace lib_math {
 				m_values[n + 3] = type(n == 12);
 			}
 		}
-		void print() const;
+		void print(const char* tabs = "") const;
 
 		unsigned int is_identity(const type eps = t_tuple<type>::eps_scalar()) const {
 			const m_vector_type& xv = get_x_vector();
@@ -528,11 +561,11 @@ namespace lib_math {
 
 			unsigned int n = 0;
 
-			// test orthogonality
+			// test angles
 			n += ((std::fabs(xv.inner_product(yv)) >= eps) * (1 << 0));
 			n += ((std::fabs(yv.inner_product(zv)) >= eps) * (1 << 1));
 			n += ((std::fabs(xv.inner_product(zv)) >= eps) * (1 << 2));
-			// test normality
+			// test lengths
 			n += ((std::fabs(type(1) - xv.sq_magnit()) >= eps) * (1 << 3));
 			n += ((std::fabs(type(1) - yv.sq_magnit()) >= eps) * (1 << 4));
 			n += ((std::fabs(type(1) - zv.sq_magnit()) >= eps) * (1 << 5));
@@ -543,6 +576,20 @@ namespace lib_math {
 
 		m_vector_type get_angles_rh(const type eps = t_tuple<type>::eps_scalar()) const;
 		m_vector_type get_angles_lh(const type eps = t_tuple<type>::eps_scalar()) const;
+
+
+		static t_matrix<type> lerp(const t_matrix<type>& src_mat, const t_matrix<type>& dst_mat, const m_vector_type& alpha) {
+			// interpolate (assumed left-handed) rotation; requires xyz_int or zyx_ext
+			const m_vector_type int_angles = lib_math::lerp(src_mat.get_angles_lh(), dst_mat.get_angles_lh(), alpha.x());
+			// interpolate translation independently
+			const m_vector_type int_transl = lib_math::lerp(src_mat.get_t_vector(), dst_mat.get_t_vector(), alpha.y());
+
+			// construct lerp'ed matrix
+			t_matrix<type> r;
+			r.rotate_xyz_int_ref(int_angles);
+			r.set_t_vector(int_transl);
+			return r;
+		}
 
 		//	matrix_outer(v, w) =
 		//	  (  0 -v3  v2)   (w1)

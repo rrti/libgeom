@@ -116,12 +116,12 @@ namespace lib_math {
 	}
 
 
-	template<> void t_matrix44f::print() const {
-		printf("\n X      Y      Z      T\n");
-		for (unsigned int n = 0; n < LIBGEOM_MATRIX_SIZE; n += 4) { printf(" %.3f ", m_values[n]); } printf("\n"); // 1st row
-		for (unsigned int n = 1; n < LIBGEOM_MATRIX_SIZE; n += 4) { printf(" %.3f ", m_values[n]); } printf("\n"); // 2nd row
-		for (unsigned int n = 2; n < LIBGEOM_MATRIX_SIZE; n += 4) { printf(" %.3f ", m_values[n]); } printf("\n"); // 3rd row
-		for (unsigned int n = 3; n < LIBGEOM_MATRIX_SIZE; n += 4) { printf(" %.3f ", m_values[n]); } printf("\n"); // 4th row
+	template<> void t_matrix44f::print(const char* tabs) const {
+		printf("\n%s  X       Y       Z       T\n%s", tabs, tabs);
+		for (unsigned int n = 0; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_values[n]); } printf("\n%s", tabs); // 1st row
+		for (unsigned int n = 1; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_values[n]); } printf("\n%s", tabs); // 2nd row
+		for (unsigned int n = 2; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_values[n]); } printf("\n%s", tabs); // 3rd row
+		for (unsigned int n = 3; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_values[n]); } printf("\n%s", tabs); // 4th row
 		printf("\n");
 	}
 };

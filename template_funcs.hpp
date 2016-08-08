@@ -26,7 +26,12 @@ namespace lib_math {
 	template<typename type> type min3(type a, type b, type c) { return (std::min<type>(a, std::min<type>(b, c))); }
 	template<typename type> type max3(type a, type b, type c) { return (std::max<type>(a, std::max<type>(b, c))); }
 	template<typename type> type sign(type v) { return ((v >= type(0)) * type(2) - type(1)); }
-	template<typename type> type lerp(type vmin, type vmax, type alpha) { return (vmin * (type(1) - alpha) + vmax * alpha); }
+	// (type(1) - alpha) works only if <type> is a scalar, so rewrite it to a form accepting
+	// both scalars and vectors (X * (1 - a) + Y * a == X - X * a + Y * a == X - (X + Y) * a)
+	// the latter however still requires alpha to be specified as a vector which is painful
+	// template<typename type> type lerp(type vmin, type vmax, type alpha) { return (vmin * (type(1) - alpha) + vmax * alpha); }
+	// template<typename type> type lerp(type vmin, type vmax, type alpha) { return (vmin - (vmin + vmax) * alpha); }
+	template<typename type> type lerp(type vmin, type vmax, float alpha) { return (vmin * (1.0f - alpha) + vmax * alpha); }
 	template<typename type> type norm(type v, type vmin, type vmax) { return ((v - vmin) / (vmax - vmin)); }
 	template<typename type> type clamp(type v, type vmin, type vmax) { return (std::max<type>(vmin, std::min<type>(vmax, v))); }
 	template<typename type> type square(type v) { return (v * v); }
