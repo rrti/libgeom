@@ -81,7 +81,8 @@ namespace lib_math {
 		// inner product is only defined between vectors and vectors
 		// w-components are normally zero so they do not contribute!
 		// (so dedicated "*_xyz" convenience wrappers can be omitted)
-		type inner_product(const t_vector<type>& v, const t_vector<type>& mask = xyz_axis_vector()) const {
+		type inner_product(const t_vector<type>& v, const t_vector<type>& mask = xyz_axis_vector()) const { return (inner(v, mask)); }
+		type inner        (const t_vector<type>& v, const t_vector<type>& mask = xyz_axis_vector()) const {
 			return ((x() * v.x() * mask.x()) + (y() * v.y() * mask.y()) + (z() * v.z() * mask.z()) + (w() * v.w() * mask.w()));
 		}
 
@@ -89,17 +90,17 @@ namespace lib_math {
 		type    magnit(const t_vector<type>& mask = xyz_axis_vector()) const { return (   len(mask)); }
 		type sq_length(const t_vector<type>& mask = xyz_axis_vector()) const { return (sq_len(mask)); }
 		type    length(const t_vector<type>& mask = xyz_axis_vector()) const { return (   len(mask)); }
-		type sq_len   (const t_vector<type>& mask = xyz_axis_vector()) const { return (inner_product(*this, mask)); }
+		type sq_len   (const t_vector<type>& mask = xyz_axis_vector()) const { return (inner(*this, mask)); }
 		type    len   (const t_vector<type>& mask = xyz_axis_vector()) const { return (lib_math::sqrt(sq_len(mask))); }
 
 		#if 0
-		type dot_xy(const t_vector<type>& v) const { return inner_product(v, xy_axis_vector()); }
-		type dot_yz(const t_vector<type>& v) const { return inner_product(v, yz_axis_vector()); }
-		type dot_xz(const t_vector<type>& v) const { return inner_product(v, xz_axis_vector()); }
+		type dot_xy(const t_vector<type>& v) const { return (inner(v, xy_axis_vector())); }
+		type dot_yz(const t_vector<type>& v) const { return (inner(v, yz_axis_vector())); }
+		type dot_xz(const t_vector<type>& v) const { return (inner(v, xz_axis_vector())); }
 
-		type sq_magnit_xy() const { return (inner_product(*this, xy_axis_vector())); }
-		type sq_magnit_yz() const { return (inner_product(*this, yz_axis_vector())); }
-		type sq_magnit_xz() const { return (inner_product(*this, xz_axis_vector())); }
+		type sq_magnit_xy() const { return (inner(*this, xy_axis_vector())); }
+		type sq_magnit_yz() const { return (inner(*this, yz_axis_vector())); }
+		type sq_magnit_xz() const { return (inner(*this, xz_axis_vector())); }
 
 		type magnit_xy() const { return (lib_math::sqrt(sq_magnit_xy())); }
 		type magnit_yz() const { return (lib_math::sqrt(sq_magnit_yz())); }
@@ -154,7 +155,7 @@ namespace lib_math {
 		// reflect this vector about the vector <N>
 		t_vector<type> reflect(const t_vector<type>& n) const {
 			const t_vector<type>& v = *this;
-			const t_vector<type>  r = n * (n.inner_product(v) * 2);
+			const t_vector<type>  r = n * (n.inner(v) * 2);
 			return (v - r);
 		}
 
@@ -165,7 +166,7 @@ namespace lib_math {
 			const t_vector<type>& v = *this;
 
 			const type r  = r1 / r2;
-			const type ct = -(n.inner_product(v));
+			const type ct = -(n.inner(v));
 			const type st = 1 - (r * r * (1 - ct * ct));
 
 			if (st > 0)
@@ -177,7 +178,8 @@ namespace lib_math {
 
 
 		// NOTE: incorrect use of mask here
-		t_vector<type> outer_product(const t_vector<type>& vec, const t_vector<type>& mask = xyz_axis_vector()) const {
+		t_vector<type> outer_product(const t_vector<type>& vec, const t_vector<type>& mask = xyz_axis_vector()) const { return (outer(vec, mask)); }
+		t_vector<type> outer        (const t_vector<type>& vec, const t_vector<type>& mask = xyz_axis_vector()) const {
 			const type _x = ((y() * vec.z()) - (z() * vec.y())) * mask.x();
 			const type _y = ((z() * vec.x()) - (x() * vec.z())) * mask.y();
 			const type _z = ((x() * vec.y()) - (y() * vec.x())) * mask.z();
@@ -208,7 +210,8 @@ namespace lib_math {
 		*/
 
 		t_vector<type>& normalize_ref() { return ((*this) = normalize()); }
-		t_vector<type>& outer_product_ref(const t_vector<type>& v) { return ((*this) = outer_product(v)); }
+		t_vector<type>& outer_ref(const t_vector<type>& v) { return ((*this) = outer(v)); }
+		t_vector<type>& outer_product_ref(const t_vector<type>& v) { return (outer_ref(v)); }
 
 
 
