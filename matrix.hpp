@@ -77,9 +77,9 @@ namespace lib_math {
 		// aka "transform_vector"
 		m_vector_type operator * (const m_vector_type& v) const {
 			m_vector_type tv;
-			tv.x() = (m_values[0] * v.x()) + (m_values[4] * v.y()) + (m_values[ 8] * v.z()); // same as n.inner_product(row[0])
-			tv.y() = (m_values[1] * v.x()) + (m_values[5] * v.y()) + (m_values[ 9] * v.z()); // same as n.inner_product(row[1])
-			tv.z() = (m_values[2] * v.x()) + (m_values[6] * v.y()) + (m_values[10] * v.z()); // same as n.inner_product(row[2])
+			tv.x() = (m_values[0] * v.x()) + (m_values[4] * v.y()) + (m_values[ 8] * v.z()); // same as n.inner(row[0])
+			tv.y() = (m_values[1] * v.x()) + (m_values[5] * v.y()) + (m_values[ 9] * v.z()); // same as n.inner(row[1])
+			tv.z() = (m_values[2] * v.x()) + (m_values[6] * v.y()) + (m_values[10] * v.z()); // same as n.inner(row[2])
 			tv.w() = v.w();
 			return tv;
 		}
@@ -189,10 +189,10 @@ namespace lib_math {
 
 		t_matrix<type> translate(const m_vector_type& v) const {
 			t_matrix<type> r = *this;
-			r[12] += ((v.x() * r[0]) + (v.y() * r[4]) + (v.z() * r[ 8])); // same as tv.inner_product(rows[0])
-			r[13] += ((v.x() * r[1]) + (v.y() * r[5]) + (v.z() * r[ 9])); // same as tv.inner_product(rows[1])
-			r[14] += ((v.x() * r[2]) + (v.y() * r[6]) + (v.z() * r[10])); // same as tv.inner_product(rows[2])
-			r[15] += ((v.x() * r[3]) + (v.y() * r[7]) + (v.z() * r[11])); // same as tv.inner_product(rows[3])
+			r[12] += ((v.x() * r[0]) + (v.y() * r[4]) + (v.z() * r[ 8])); // same as tv.inner(rows[0])
+			r[13] += ((v.x() * r[1]) + (v.y() * r[5]) + (v.z() * r[ 9])); // same as tv.inner(rows[1])
+			r[14] += ((v.x() * r[2]) + (v.y() * r[6]) + (v.z() * r[10])); // same as tv.inner(rows[2])
+			r[15] += ((v.x() * r[3]) + (v.y() * r[7]) + (v.z() * r[11])); // same as tv.inner(rows[3])
 			return r;
 		}
 		t_matrix<type> scale(const m_vector_type& sv) const {
@@ -397,8 +397,8 @@ namespace lib_math {
 		}
 
 		t_matrix<type> rotate_axis(const m_vector_type& rot_axis, type angle) const {
-			const m_vector_type vx = (rot_axis.outer_product(t_vector<type>::y_axis_vector())).normalize();
-			const m_vector_type vy = (rot_axis.outer_product(                           vx  )).normalize();
+			const m_vector_type vx = (rot_axis.outer(t_vector<type>::y_axis_vector())).normalize();
+			const m_vector_type vy = (rot_axis.outer(                           vx  )).normalize();
 
 			const t_matrix<type> m_fwd = std::move(t_matrix<type>(vx, vy, rot_axis));
 			const t_matrix<type> m_inv = std::move(m_fwd.invert_affine());
@@ -417,9 +417,9 @@ namespace lib_math {
 			const m_vector_type z_axis = get_z_vector();
 
 			// project rotation axis onto each principal axis
-			const m_vector_type fwd_axis_x = rot_axis * x_axis.inner_product(rot_axis);
-			const m_vector_type fwd_axis_y = rot_axis * y_axis.inner_product(rot_axis);
-			const m_vector_type fwd_axis_z = rot_axis * z_axis.inner_product(rot_axis);
+			const m_vector_type fwd_axis_x = rot_axis * x_axis.inner(rot_axis);
+			const m_vector_type fwd_axis_y = rot_axis * y_axis.inner(rot_axis);
+			const m_vector_type fwd_axis_z = rot_axis * z_axis.inner(rot_axis);
 
 			// NOTE: rgt and up define the rotational plane
 			const m_vector_type rgt_axis_x = x_axis - fwd_axis_x;
@@ -427,9 +427,9 @@ namespace lib_math {
 			const m_vector_type rgt_axis_z = z_axis - fwd_axis_z;
 
 			// does not preserve orthonormality for non-principal rotation axes
-			const m_vector_type up_axis_x = (rot_axis.outer_product(rgt_axis_x)).normalize();
-			const m_vector_type up_axis_y = (rot_axis.outer_product(rgt_axis_y)).normalize();
-			const m_vector_type up_axis_z = (rot_axis.outer_product(rgt_axis_z)).normalize();
+			const m_vector_type up_axis_x = (rot_axis.outer(rgt_axis_x)).normalize();
+			const m_vector_type up_axis_y = (rot_axis.outer(rgt_axis_y)).normalize();
+			const m_vector_type up_axis_z = (rot_axis.outer(rgt_axis_z)).normalize();
 
 			set_x_vector((fwd_axis_x + (rgt_axis_x * ca + up_axis_x * sa)));
 			set_y_vector((fwd_axis_y + (rgt_axis_y * ca + up_axis_y * sa)));
@@ -473,8 +473,8 @@ namespace lib_math {
 			assert(std::fabs(va.inner(vp)) < type(1));
 
 			// v.outer(w) always points to the local "right"
-			const m_vector_type vs = (vp.outer_product(va)).normalize();
-			const m_vector_type vt = (vs.outer_product(vp)).normalize();
+			const m_vector_type vs = (vp.outer(va)).normalize();
+			const m_vector_type vt = (vs.outer(vp)).normalize();
 
 			switch (idx) {
 				case 0: {
@@ -562,9 +562,9 @@ namespace lib_math {
 			unsigned int n = 0;
 
 			// test angles
-			n += ((std::fabs(xv.inner_product(yv)) >= eps) * (1 << 0));
-			n += ((std::fabs(yv.inner_product(zv)) >= eps) * (1 << 1));
-			n += ((std::fabs(xv.inner_product(zv)) >= eps) * (1 << 2));
+			n += ((std::fabs(xv.inner(yv)) >= eps) * (1 << 0));
+			n += ((std::fabs(yv.inner(zv)) >= eps) * (1 << 1));
+			n += ((std::fabs(xv.inner(zv)) >= eps) * (1 << 2));
 			// test lengths
 			n += ((std::fabs(type(1) - xv.sq_magnit()) >= eps) * (1 << 3));
 			n += ((std::fabs(type(1) - yv.sq_magnit()) >= eps) * (1 << 4));
