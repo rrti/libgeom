@@ -55,8 +55,11 @@ namespace lib_math {
 		t_vector<type>& operator *= (const type s) { x() *= s; y() *= s; z() *= s; w() *= s; return *this; }
 		t_vector<type>& operator /= (const type s) { x() /= s; y() /= s; z() /= s; w() /= s; return *this; }
 
-		// calculates v * M = v' (with v a row-vector)
-		// same as v' = M * v (with v a column-vector)
+
+		// returns the vector (v * M^T) where v=this is interpreted as a    row-vector
+		// same as the vector (M * v  ) where v=this is interpreted as a column-vector
+		// M must be manually transposed here (in general, M * v == v * M^T != v^T * M
+		// since column-major post-multiplication equals row-major pre-multiplication)
 		// UNOFFICIAL! (matrices operate on points)
 		t_vector<type> operator * (const t_matrix<type>& m) const {
 			const type _x = x() * m[0] + y() * m[1] + z() * m[ 2];
@@ -64,15 +67,17 @@ namespace lib_math {
 			const type _z = x() * m[8] + y() * m[9] + z() * m[10];
 			return (t_vector<type>(_x, _y, _z, 0));
 		}
-		// calculates the matrix (this * v^T) where
-		// <this> is interpreted as a column-vector
+
+		// returns the matrix M = v * w^T where v=this is interpreted as a column-vector
+		// and w^T as a row-vector; as such (v^T * w) is a scalar and (v * w^T) a matrix
 		// UNOFFICIAL! (matrices operate on points)
-		t_matrix<type> operator ^ (const t_vector<type>& v) const {
-			const t_vector<type> xv = t_vector<type>(x() * v.x(), y() * v.x(), z() * v.x(), 0);
-			const t_vector<type> yv = t_vector<type>(x() * v.y(), y() * v.y(), z() * v.y(), 0);
-			const t_vector<type> zv = t_vector<type>(x() * v.z(), y() * v.z(), z() * v.z(), 0);
+		t_matrix<type> operator ^ (const t_vector<type>& w) const {
+			const t_vector<type> xv = t_vector<type>(x() * w.x(), y() * w.x(), z() * w.x(), 0);
+			const t_vector<type> yv = t_vector<type>(x() * w.y(), y() * w.y(), z() * w.y(), 0);
+			const t_vector<type> zv = t_vector<type>(x() * w.z(), y() * w.z(), z() * w.z(), 0);
 			return (t_matrix<type>(xv, yv, zv, t_vector<type>::w_axis_vector()));
 		}
+
 
 		// cf. point::to_vector
 		t_tuple<type> to_tuple() const {                   return (t_tuple<type>(                 *this)); }

@@ -591,12 +591,10 @@ namespace lib_math {
 			return r;
 		}
 
-		//	matrix_outer(v, w) =
-		//	  (  0 -v3  v2)   (w1)
-		//	  ( v3   0 -v1) * (w2)
-		//	  (-v2  v1   0)   (w3)
-		//
-		// NOTE: useful to generalize this to higher dimensions
+		// same as vector::outer(v, w); useful for generalizing to higher dimensions
+		//   [   0 -v.z  v.y]   [w.x]   [   0 * w.x  -  v.z * w.y  +  v.y * w.z]   [v.y * w.z - v.z * w.y]
+		//   [ v.z    0 -v.x] * [w.y] = [ v.z * w.x  +    0 * w.y  -  v.x * w.z] = [v.z * w.x - v.x * w.z]
+		//   [-v.y  v.x    0]   [w.z]   [-v.y * w.x  +  v.x * w.y  +    0 * w.z]   [v.x * w.y - v.y * w.x]
 		static m_vector_type outer_product(const m_vector_type& v, const m_vector_type& w) {
 			t_matrix<type> m;
 			m.set_x_vector(m_vector_type(type(0),   v.z(),  -v.y()));
