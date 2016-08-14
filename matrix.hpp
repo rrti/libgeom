@@ -187,6 +187,22 @@ namespace lib_math {
 		m_vector_type get_col_vector(unsigned int idx) const { return (m_vector_type(m_values[(idx * 4) + 0], m_values[(idx * 4) + 1], m_values[(idx * 4) + 2], m_values[(idx * 4) + 3])); }
 
 
+		t_matrix<type> orthonormalize() const {
+			t_matrix<type> r = *this;
+			m_vector_type xv = r.get_x_vector();
+			m_vector_type yv = r.get_y_vector();
+			m_vector_type zv;
+
+			xv = xv.normalize_ref(); zv = xv.outer(yv);
+			zv = zv.normalize_ref(); yv = zv.outer(xv);
+			yv = yv.normalize_ref();
+
+			r.set_x_vector(xv);
+			r.set_y_vector(yv);
+			r.set_z_vector(zv);
+			return r;
+		}
+
 		t_matrix<type> translate(const m_vector_type& v) const {
 			t_matrix<type> r = *this;
 			r[12] += ((v.x() * r[0]) + (v.y() * r[4]) + (v.z() * r[ 8])); // same as tv.inner(rows[0])
@@ -196,7 +212,7 @@ namespace lib_math {
 			return r;
 		}
 		t_matrix<type> scale(const m_vector_type& sv) const {
-			t_matrix r = *this;
+			t_matrix<type> r = *this;
 
 			r[ 0] *= sv.x(); r[ 4] *= sv.y();
 			r[ 1] *= sv.x(); r[ 5] *= sv.y();
@@ -251,8 +267,9 @@ namespace lib_math {
 		//
 		t_matrix<type> invert_general(const type eps = t_tuple<type>::eps_scalar()) const;
 
-		t_matrix& translate_ref(const m_vector_type& tv) { return ((*this) = translate(tv)); }
-		t_matrix& scale_ref(const m_vector_type& sv) { return ((*this) = scale(sv)); }
+		t_matrix<type>& orthonormalize_ref() { return ((*this) = orthonormalize()); }
+		t_matrix<type>& translate_ref(const m_vector_type& tv) { return ((*this) = translate(tv)); }
+		t_matrix<type>& scale_ref(const m_vector_type& sv) { return ((*this) = scale(sv)); }
 
 		t_matrix<type>& transpose_ref() { return ((*this) = transpose()); }
 		t_matrix<type>& transpose_rotation_ref() { return ((*this) = transpose_rotation()); }
@@ -431,6 +448,10 @@ namespace lib_math {
 			const m_vector_type up_axis_y = (rot_axis.outer(rgt_axis_y)).normalize();
 			const m_vector_type up_axis_z = (rot_axis.outer(rgt_axis_z)).normalize();
 
+			// Rodriguez's (?) equation
+			// r=point (to rotate), n=axis, n^t*r is dot-product in matrix-notation
+			// then r' = n^t*r*n + cos(angle)*(r - n^t*r*n) + sin(angle)*(n cross r)
+			//
 			set_x_vector((fwd_axis_x + (rgt_axis_x * ca + up_axis_x * sa)));
 			set_y_vector((fwd_axis_y + (rgt_axis_y * ca + up_axis_y * sa)));
 			set_z_vector((fwd_axis_z + (rgt_axis_z * ca + up_axis_z * sa)));
@@ -591,7 +612,7 @@ namespace lib_math {
 			return r;
 		}
 
-		// same as vector::outer(v, w); useful for generalizing to higher dimensions
+		// same as vector::outer(v, w); useful for generalizing to higher dimensions (m is skew-symmetric)
 		//   [   0 -v.z  v.y]   [w.x]   [   0 * w.x  -  v.z * w.y  +  v.y * w.z]   [v.y * w.z - v.z * w.y]
 		//   [ v.z    0 -v.x] * [w.y] = [ v.z * w.x  +    0 * w.y  -  v.x * w.z] = [v.z * w.x - v.x * w.z]
 		//   [-v.y  v.x    0]   [w.z]   [-v.y * w.x  +  v.x * w.y  +    0 * w.z]   [v.x * w.y - v.y * w.x]

@@ -62,6 +62,7 @@ namespace lib_math {
 
 
 		bool point_in_triangle(const m_point_type& point, const m_coor_type eps = m_tuple_type::eps_scalar()) const;
+		bool point_in_triangle_bc(const m_point_type& point, const m_coor_type eps = m_tuple_type::eps_scalar()) const;
 
 		// test if <this> intersects <plane>
 		bool intersect_plane(const t_plane& plane, const m_coor_type eps = m_tuple_type::eps_scalar()) const;

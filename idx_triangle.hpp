@@ -29,11 +29,10 @@ namespace lib_math {
 			const m_vector_type v10 = (vertices[indices.y()] - vertices[indices.x()]).normalize();
 			const m_vector_type v20 = (vertices[indices.z()] - vertices[indices.x()]).normalize();
 
-			// BIG FAT NOTE:
-			//   the cross-product of two normalized vectors is *NOT*
-			//   always normalized itself, so we *MUST* re-normalize!
-			//   e.g.: <1, 0, 0> x <0.71, 0, 0.71> = <0, 0.71, 0>
-			//
+			// the cross-product of two normalized vectors (v,w) is
+			// only of unit length when dot(v,w)=0 which can not be
+			// assumed here; the spanned parallelogram is not likely
+			// a square so its surface area will be less than 1
 			m_indices = indices;
 			m_normal = (v20.outer_product((v10))).normalize();
 			m_radius = calc_radius(vertices, indices);
