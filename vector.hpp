@@ -157,6 +157,13 @@ namespace lib_math {
 		}
 
 
+		// project the vector b onto a=this; a should be normalized
+		t_vector<type> project(const t_vector<type>& b) const {
+			const t_vector<type>& a = *this;
+			const t_vector<type>  p = a * a.inner_product(b);
+			return p;
+		}
+
 		// reflect this vector about the vector <N>
 		t_vector<type> reflect(const t_vector<type>& n) const {
 			const t_vector<type>& v = *this;
@@ -221,10 +228,6 @@ namespace lib_math {
 
 
 		#if 0
-		t_vector<type> project(const t_vector<type>& m) const {
-			return (t_vector<type>(x() * m.x(), y() * m.y(), z() * m.z(), w() * m.w()));
-		}
-
 		// these are redundant with multiplicative-masks
 		t_vector<type> xz() const { return (t_vector<type>(x(), 0,   z(), w())); }
 		t_vector<type> xy() const { return (t_vector<type>(x(), y(), 0,   w())); }
