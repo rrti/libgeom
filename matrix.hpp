@@ -612,16 +612,20 @@ namespace lib_math {
 			return r;
 		}
 
+		static t_matrix<type> skew_sym(const m_vector_type& v) {
+			t_matrix<type> m;
+			m.set_x_vector(m_vector_type(type(0),   v.z(),  -v.y()));
+			m.set_y_vector(m_vector_type( -v.z(), type(0),   v.x()));
+			m.set_z_vector(m_vector_type(  v.y(),  -v.x(), type(0)));
+			return m;
+		}
+
 		// same as vector::outer(v, w); useful for generalizing to higher dimensions (m is skew-symmetric)
 		//   [   0 -v.z  v.y]   [w.x]   [   0 * w.x  -  v.z * w.y  +  v.y * w.z]   [v.y * w.z - v.z * w.y]
 		//   [ v.z    0 -v.x] * [w.y] = [ v.z * w.x  +    0 * w.y  -  v.x * w.z] = [v.z * w.x - v.x * w.z]
 		//   [-v.y  v.x    0]   [w.z]   [-v.y * w.x  +  v.x * w.y  +    0 * w.z]   [v.x * w.y - v.y * w.x]
 		static m_vector_type outer_product(const m_vector_type& v, const m_vector_type& w) {
-			t_matrix<type> m;
-			m.set_x_vector(m_vector_type(type(0),   v.z(),  -v.y()));
-			m.set_y_vector(m_vector_type( -v.z(), type(0),   v.x()));
-			m.set_z_vector(m_vector_type(  v.y(),  -v.x(), type(0)));
-			return (m * w);
+			return (skew_sym(v) * w);
 		}
 
 	private:
