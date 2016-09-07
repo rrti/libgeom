@@ -1,6 +1,7 @@
 #ifndef LIBGEOM_POINT_HDR
 #define LIBGEOM_POINT_HDR
 
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 

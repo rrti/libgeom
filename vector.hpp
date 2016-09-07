@@ -1,6 +1,7 @@
 #ifndef LIBGEOM_VECTOR_HDR
 #define LIBGEOM_VECTOR_HDR
 
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 
