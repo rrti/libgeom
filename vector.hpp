@@ -249,6 +249,8 @@ namespace lib_math {
 		t_vector<type> abs(                       ) const { return (t_vector<type>(std::abs(      x()),        std::abs(     y()),         std::abs(      z()),        w())); }
 		t_vector<type> max(const t_vector<type>& v) const { return (t_vector<type>(std::max<type>(x(), v.x()), std::max<type>(y(), v.y()), std::max<type>(z(), v.z()), w())); }
 		t_vector<type> min(const t_vector<type>& v) const { return (t_vector<type>(std::min<type>(x(), v.x()), std::min<type>(y(), v.y()), std::min<type>(z(), v.z()), w())); }
+		t_vector<type> mod(const t_vector<type>& v) const { return (t_vector<type>(std::fmod     (x(), v.x()), std::fmod     (y(), v.y()), std::fmod     (z(), v.z()), w())); }
+		// t_vector<type> mod(const t_vector<type>& v) const { return (t_vector<type>(std::mod<type>(x(), v.x()), std::mod<type>(y(), v.y()), std::mod<type>(z(), v.z()), w())); }
 
 		t_vector<type> signs() const { return (t_vector<type>(signum(x()), signum(y()), signum(z()), signum(w()))); }
 		t_vector<type> clamp(const t_vector<type>& vmin, const t_vector<type>& vmax) const {
