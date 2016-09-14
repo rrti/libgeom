@@ -62,7 +62,7 @@ namespace lib_math {
 		return (v.rotate_y_ext(angle_int));
 	}
 
-	template<typename type> t_vector<type> vec_slerp(const t_vector<type>& vz, const t_vector<type>& vw, type alpha) {
+	template<typename type> t_vector<type> vec_slerp(const t_vector<type>& vz, const t_vector<type>& vw, type alpha, type epsilon) {
 		// Nth-order polynomial vector interpolation over angles
 		//
 		// two (non-colinear) vectors v and w uniquely span a plane
@@ -82,7 +82,7 @@ namespace lib_math {
 
 		// inv-transform source and target to axis-aligned vectors
 		// interpolate in the local space, transform back to world
-		return (m1 * vec_slerp_aux(m2 * vz, m2 * vw, alpha, 0.01f));
+		return (m1 * vec_slerp_aux(m2 * vz, m2 * vw, alpha, epsilon));
 	}
 
 
