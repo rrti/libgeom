@@ -49,7 +49,7 @@ namespace lib_math {
 	) {
 		const type cos_angle = lib_math::clamp(v.inner_product(w), type(-1), type(1));
 		const type angle_max = std::acos(cos_angle); // radians
-		const type angle_int = alpha * angle_max;
+		const type angle_int = angle_max * alpha;
 
 		// if dot(source, target) ==  1 no interpolation is required
 		// if dot(source, target) == -1 no interpolation is possible
@@ -85,6 +85,11 @@ namespace lib_math {
 		return (m1 * vec_slerp_aux(m2 * vz, m2 * vw, alpha, 0.01f));
 	}
 
+
+	// convert the given angle to a unit-vector in the xy-plane
+	template<typename type> t_vector<type> angle_to_vector(type angle) {
+		return (t_vector<type>(std::cos(angle), std::sin(angle), type(0)));
+	}
 
 	template<typename type> constexpr type deg_to_rad() { return (M_PI / type(180)); }
 	template<typename type> constexpr type rad_to_deg() { return (type(180) / M_PI); }
