@@ -86,10 +86,12 @@ namespace lib_math {
 	}
 
 
-	// convert the given angle to a unit-vector in the xy-plane
-	template<typename type> t_vector<type> angle_to_vector(type angle) {
-		return (t_vector<type>(std::cos(angle), std::sin(angle), type(0)));
-	}
+	template<typename type> t_vector<type> angle_to_vector_xy(type angle) { return (t_vector<type>(std::cos(angle), std::sin(angle),         type(0))); }
+	template<typename type> t_vector<type> angle_to_vector_xz(type angle) { return (t_vector<type>(std::cos(angle),         type(0), std::sin(angle))); }
+	template<typename type> t_vector<type> angle_to_vector_yz(type angle) { return (t_vector<type>(        type(0), std::cos(angle), std::sin(angle))); }
+	template<typename type> type vector_to_angle_xy(const t_vector<type>& vector) { return (std::atan2(vector.y(), vector.x())); }
+	template<typename type> type vector_to_angle_xz(const t_vector<type>& vector) { return (std::atan2(vector.z(), vector.x())); }
+	template<typename type> type vector_to_angle_yz(const t_vector<type>& vector) { return (std::atan2(vector.z(), vector.y())); }
 
 	template<typename type> constexpr type deg_to_rad() { return (M_PI / type(180)); }
 	template<typename type> constexpr type rad_to_deg() { return (type(180) / M_PI); }
