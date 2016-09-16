@@ -48,7 +48,7 @@ namespace lib_math {
 		const type epsilon
 	) {
 		const type cos_angle = lib_math::clamp(v.inner(w), type(-1), type(1));
-		const type ccw_slerp = lib_math::sign(v.inner(w.outer(t_vector<type>::y_axis_vector())));
+		const type ccw_slerp = lib_math::sign(v.inner(w.outer(t_vector<type>::y_vector())));
 		const type angle_max = std::acos(cos_angle); // radians
 		const type angle_int = angle_max * alpha * ccw_slerp;
 

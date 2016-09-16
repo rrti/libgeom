@@ -47,7 +47,7 @@ namespace lib_math {
 			const m_point_type& va = vertices[m_indices.x()];
 			const m_point_type& vb = vertices[m_indices.y()];
 			const m_point_type& vc = vertices[m_indices.z()];
-			const m_vector_type  n = m_normal + m_vector_type::w_axis_vector() * m_radius;
+			const m_vector_type  n = m_normal + m_vector_type::w_vector() * m_radius;
 			return (t_raw_triangle(va, vb, vc, n));
 		}
 

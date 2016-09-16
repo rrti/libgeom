@@ -76,7 +76,7 @@ namespace lib_math {
 			const t_vector<type> xv = t_vector<type>(x() * w.x(), y() * w.x(), z() * w.x(), 0);
 			const t_vector<type> yv = t_vector<type>(x() * w.y(), y() * w.y(), z() * w.y(), 0);
 			const t_vector<type> zv = t_vector<type>(x() * w.z(), y() * w.z(), z() * w.z(), 0);
-			return (t_matrix<type>(xv, yv, zv, t_vector<type>::w_axis_vector()));
+			return (t_matrix<type>(xv, yv, zv, t_vector<type>::w_vector()));
 		}
 
 
@@ -87,26 +87,26 @@ namespace lib_math {
 		// inner product is only defined between vectors and vectors
 		// w-components are normally zero so they do not contribute!
 		// (so dedicated "*_xyz" convenience wrappers can be omitted)
-		type inner_product(const t_vector<type>& v, const t_vector<type>& mask = xyz_axis_vector()) const { return (inner(v, mask)); }
-		type inner        (const t_vector<type>& v, const t_vector<type>& mask = xyz_axis_vector()) const {
+		type inner_product(const t_vector<type>& v, const t_vector<type>& mask = xyz_vector()) const { return (inner(v, mask)); }
+		type inner        (const t_vector<type>& v, const t_vector<type>& mask = xyz_vector()) const {
 			return ((x() * v.x() * mask.x()) + (y() * v.y() * mask.y()) + (z() * v.z() * mask.z()) + (w() * v.w() * mask.w()));
 		}
 
-		type sq_magnit(const t_vector<type>& mask = xyz_axis_vector()) const { return (sq_len(mask)); }
-		type    magnit(const t_vector<type>& mask = xyz_axis_vector()) const { return (   len(mask)); }
-		type sq_length(const t_vector<type>& mask = xyz_axis_vector()) const { return (sq_len(mask)); }
-		type    length(const t_vector<type>& mask = xyz_axis_vector()) const { return (   len(mask)); }
-		type sq_len   (const t_vector<type>& mask = xyz_axis_vector()) const { return (inner(*this, mask)); }
-		type    len   (const t_vector<type>& mask = xyz_axis_vector()) const { return (lib_math::sqrt(sq_len(mask))); }
+		type sq_magnit(const t_vector<type>& mask = xyz_vector()) const { return (sq_len(mask)); }
+		type    magnit(const t_vector<type>& mask = xyz_vector()) const { return (   len(mask)); }
+		type sq_length(const t_vector<type>& mask = xyz_vector()) const { return (sq_len(mask)); }
+		type    length(const t_vector<type>& mask = xyz_vector()) const { return (   len(mask)); }
+		type sq_len   (const t_vector<type>& mask = xyz_vector()) const { return (inner(*this, mask)); }
+		type    len   (const t_vector<type>& mask = xyz_vector()) const { return (lib_math::sqrt(sq_len(mask))); }
 
 		#if 0
-		type dot_xy(const t_vector<type>& v) const { return (inner(v, xy_axis_vector())); }
-		type dot_yz(const t_vector<type>& v) const { return (inner(v, yz_axis_vector())); }
-		type dot_xz(const t_vector<type>& v) const { return (inner(v, xz_axis_vector())); }
+		type dot_xy(const t_vector<type>& v) const { return (inner(v, xy_vector())); }
+		type dot_yz(const t_vector<type>& v) const { return (inner(v, yz_vector())); }
+		type dot_xz(const t_vector<type>& v) const { return (inner(v, xz_vector())); }
 
-		type sq_magnit_xy() const { return (inner(*this, xy_axis_vector())); }
-		type sq_magnit_yz() const { return (inner(*this, yz_axis_vector())); }
-		type sq_magnit_xz() const { return (inner(*this, xz_axis_vector())); }
+		type sq_magnit_xy() const { return (inner(*this, xy_vector())); }
+		type sq_magnit_yz() const { return (inner(*this, yz_vector())); }
+		type sq_magnit_xz() const { return (inner(*this, xz_vector())); }
 
 		type magnit_xy() const { return (lib_math::sqrt(sq_magnit_xy())); }
 		type magnit_yz() const { return (lib_math::sqrt(sq_magnit_yz())); }
@@ -117,7 +117,7 @@ namespace lib_math {
 		// returns length, normalizes at same time
 		// no point adding a const-version of this
 		// ("length" == "magnitude")
-		type magnit_normalize_ref(const t_vector<type>& mask = xyz_axis_vector(), const type eps = t_tuple<type>::eps_scalar()) {
+		type magnit_normalize_ref(const t_vector<type>& mask = xyz_vector(), const type eps = t_tuple<type>::eps_scalar()) {
 			type sq_mag = sq_magnit(mask);
 			type    mag = sq_mag;
 
@@ -191,8 +191,8 @@ namespace lib_math {
 
 
 		// NOTE: incorrect use of mask here
-		t_vector<type> outer_product(const t_vector<type>& vec, const t_vector<type>& mask = xyz_axis_vector()) const { return (outer(vec, mask)); }
-		t_vector<type> outer        (const t_vector<type>& vec, const t_vector<type>& mask = xyz_axis_vector()) const {
+		t_vector<type> outer_product(const t_vector<type>& vec, const t_vector<type>& mask = xyz_vector()) const { return (outer(vec, mask)); }
+		t_vector<type> outer        (const t_vector<type>& vec, const t_vector<type>& mask = xyz_vector()) const {
 			const type _x = ((y() * vec.z()) - (z() * vec.y())) * mask.x();
 			const type _y = ((z() * vec.x()) - (x() * vec.z())) * mask.y();
 			const type _z = ((x() * vec.y()) - (y() * vec.x())) * mask.z();
@@ -201,7 +201,7 @@ namespace lib_math {
 
 		// note: these divide instead of multiplying by
 		// the reciprocal of length (<type> can be int)
-		t_vector<type> normalize(const t_vector<type>& mask = xyz_axis_vector(), const type eps = t_tuple<type>::eps_scalar()) const {
+		t_vector<type> normalize(const t_vector<type>& mask = xyz_vector(), const type eps = t_tuple<type>::eps_scalar()) const {
 			t_vector<type> r = *this;
 
 			if (normalizable(mask, eps * eps)) {
@@ -211,7 +211,7 @@ namespace lib_math {
 			return r;
 		}
 		/*
-		t_vector<type>& normalize_ref(const t_vector<type>& mask = xyz_axis_vector(), const type eps = t_tuple<type>::eps_scalar()) {
+		t_vector<type>& normalize_ref(const t_vector<type>& mask = xyz_vector(), const type eps = t_tuple<type>::eps_scalar()) {
 			t_vector<type>& r = *this;
 
 			if (normalizable(mask, eps * eps)) {
@@ -237,9 +237,9 @@ namespace lib_math {
 
 
 		#if 0
-		t_vector<type> project_xz() const { return (project(xz_axis_vector())); }
-		t_vector<type> project_xy() const { return (project(xy_axis_vector())); }
-		t_vector<type> project_yz() const { return (project(yz_axis_vector())); }
+		t_vector<type> project_xz() const { return (project(xz_vector())); }
+		t_vector<type> project_xy() const { return (project(xy_vector())); }
+		t_vector<type> project_yz() const { return (project(yz_vector())); }
 
 		t_vector<type>& project_xz_ref() { return ((*this) = project_xz()); }
 		t_vector<type>& project_xy_ref() { return ((*this) = project_xy()); }
@@ -265,7 +265,7 @@ namespace lib_math {
 
 		t_vector<type>      randomize(std::function<type(void)>& rng) const { return (t_vector<type>((rng() * 2) - 1, (rng() * 2) - 1, (rng() * 2) - 1)); }
 		t_vector<type> unit_randomize(std::function<type(void)>& rng, const type eps = t_tuple<type>::eps_scalar()) const {
-			t_vector<type> r = xyz_axis_vector();
+			t_vector<type> r = xyz_vector();
 
 			while (std::abs(r.sq_magnit() - 1) > eps) {
 				r.x() = (rng() * 2) - 1;
@@ -293,9 +293,9 @@ namespace lib_math {
 		}
 
 		#if 0
-		bool normalizable_xz(const type eps = t_tuple<type>::eps_scalar()) const { return (normalizable(xz_axis_vector, eps * eps)); }
-		bool normalizable_xy(const type eps = t_tuple<type>::eps_scalar()) const { return (normalizable(xy_axis_vector, eps * eps)); }
-		bool normalizable_yz(const type eps = t_tuple<type>::eps_scalar()) const { return (normalizable(yz_axis_vector, eps * eps)); }
+		bool normalizable_xz(const type eps = t_tuple<type>::eps_scalar()) const { return (normalizable(xz_vector(), eps * eps)); }
+		bool normalizable_xy(const type eps = t_tuple<type>::eps_scalar()) const { return (normalizable(xy_vector(), eps * eps)); }
+		bool normalizable_yz(const type eps = t_tuple<type>::eps_scalar()) const { return (normalizable(yz_vector(), eps * eps)); }
 		#endif
 
 		void print() const { (t_tuple<type>(*this)).print(); }
@@ -317,19 +317,19 @@ namespace lib_math {
 		type& w()       { return m_values[3]; }
 
 
-		static const t_vector<type>&      eps_vector();
-		static const t_vector<type>&      inf_vector();
-		static const t_vector<type>&     zero_vector();
-		static const t_vector<type>&     ones_vector();
-		static const t_vector<type>&    error_vector();
-		static const t_vector<type>&   x_axis_vector();
-		static const t_vector<type>&   y_axis_vector();
-		static const t_vector<type>&   z_axis_vector();
-		static const t_vector<type>&   w_axis_vector();
-		static const t_vector<type>&  xz_axis_vector();
-		static const t_vector<type>&  xy_axis_vector();
-		static const t_vector<type>&  yz_axis_vector();
-		static const t_vector<type>& xyz_axis_vector();
+		static const t_vector<type>&   eps_vector();
+		static const t_vector<type>&   inf_vector();
+		static const t_vector<type>&  zero_vector();
+		static const t_vector<type>&  ones_vector();
+		static const t_vector<type>& error_vector();
+		static const t_vector<type>&     x_vector();
+		static const t_vector<type>&     y_vector();
+		static const t_vector<type>&     z_vector();
+		static const t_vector<type>&     w_vector();
+		static const t_vector<type>&    xz_vector();
+		static const t_vector<type>&    xy_vector();
+		static const t_vector<type>&    yz_vector();
+		static const t_vector<type>&   xyz_vector();
 
 	private:
 		type m_values[LIBGEOM_VECTOR_SIZE];

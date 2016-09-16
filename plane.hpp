@@ -17,11 +17,11 @@ namespace lib_math {
 	typedef t_vector<m_coor_type> m_vector_type;
 
 	public:
-		t_plane(const m_vector_type& n = m_vector_type::y_axis_vector()) {
+		t_plane(const m_vector_type& n = m_vector_type::y_vector()) {
 			m_normal = n;
 		}
 
-		const m_point_type get_point() const { return (m_point_type::zero_point() + m_normal * m_vector_type::xyz_axis_vector() * m_normal.w()); }
+		const m_point_type get_point() const { return (m_point_type::zero_point() + m_normal * m_vector_type::xyz_vector() * m_normal.w()); }
 		const m_vector_type& get_normal() const { return m_normal; }
 
 		// note: assumes |m_normal.xyz| = 1

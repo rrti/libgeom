@@ -21,10 +21,10 @@ namespace lib_math {
 		t_matrix<type>(const type* values) { set_values(values); }
 		t_matrix<type>(const t_matrix<type>& m) { *this = m; }
 		t_matrix<type>(
-			const m_vector_type& x_vec = m_vector_type::x_axis_vector(),
-			const m_vector_type& y_vec = m_vector_type::y_axis_vector(),
-			const m_vector_type& z_vec = m_vector_type::z_axis_vector(),
-			const m_vector_type& t_vec = m_vector_type::w_axis_vector()
+			const m_vector_type& x_vec = m_vector_type::x_vector(),
+			const m_vector_type& y_vec = m_vector_type::y_vector(),
+			const m_vector_type& z_vec = m_vector_type::z_vector(),
+			const m_vector_type& t_vec = m_vector_type::w_vector()
 		) {
 			set_x_vector(x_vec);
 			set_y_vector(y_vec);
@@ -414,8 +414,8 @@ namespace lib_math {
 		}
 
 		t_matrix<type> rotate_axis(const m_vector_type& rot_axis, type angle) const {
-			const m_vector_type vx = (rot_axis.outer(t_vector<type>::y_axis_vector())).normalize();
-			const m_vector_type vy = (rot_axis.outer(                           vx  )).normalize();
+			const m_vector_type vx = (rot_axis.outer(t_vector<type>::y_vector())).normalize();
+			const m_vector_type vy = (rot_axis.outer(                      vx  )).normalize();
 
 			const t_matrix<type> m_fwd = std::move(t_matrix<type>(vx, vy, rot_axis));
 			const t_matrix<type> m_inv = std::move(m_fwd.invert_affine());
@@ -484,9 +484,9 @@ namespace lib_math {
 			// if <vp> is +z, secondary is +x and tertiary is +y
 			// (note the cyclicity)
 			switch (idx) {
-				case 0: { va = m_vector_type::z_axis_vector(); } break;
-				case 1: { va = m_vector_type::x_axis_vector(); } break;
-				case 2: { va = m_vector_type::y_axis_vector(); } break;
+				case 0: { va = m_vector_type::z_vector(); } break;
+				case 1: { va = m_vector_type::x_vector(); } break;
+				case 2: { va = m_vector_type::y_vector(); } break;
 				default: { assert(false); } break;
 			}
 
@@ -568,10 +568,10 @@ namespace lib_math {
 
 			unsigned int n = 0;
 
-			n += ((!xv.equals(m_vector_type::x_axis_vector(), m_vector_type::x_axis_vector() * eps)) * (1 << 0));
-			n += ((!yv.equals(m_vector_type::y_axis_vector(), m_vector_type::y_axis_vector() * eps)) * (1 << 1));
-			n += ((!zv.equals(m_vector_type::z_axis_vector(), m_vector_type::z_axis_vector() * eps)) * (1 << 2));
-			n += ((!tv.equals(m_vector_type::w_axis_vector(), m_vector_type::w_axis_vector() * eps)) * (1 << 3));
+			n += ((!xv.equals(m_vector_type::x_vector(), m_vector_type::x_vector() * eps)) * (1 << 0));
+			n += ((!yv.equals(m_vector_type::y_vector(), m_vector_type::y_vector() * eps)) * (1 << 1));
+			n += ((!zv.equals(m_vector_type::z_vector(), m_vector_type::z_vector() * eps)) * (1 << 2));
+			n += ((!tv.equals(m_vector_type::w_vector(), m_vector_type::w_vector() * eps)) * (1 << 3));
 
 			return n;
 		}
