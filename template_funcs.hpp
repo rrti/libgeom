@@ -98,6 +98,9 @@ namespace lib_math {
 	template<typename type> constexpr type rad_to_deg() { return (type(180) / M_PI); }
 
 	template<typename type> type angle_slerp(type v, type w, type alpha, type eps) {
+		// note: only valid for angles in [-PI, PI], not [0, 2PI]
+		if (sign(v) == sign(w))
+			return (lerp(v, w, alpha));
 		const t_vector<type>& src_vec = angle_to_vector_xz(v);
 		const t_vector<type>& dst_vec = angle_to_vector_xz(w);
 		const t_vector<type>& int_vec = vector_slerp_aux(src_vec, dst_vec, alpha, eps);
