@@ -41,28 +41,29 @@ namespace lib_math {
 	template<typename type> type absm(type v) { return (std::max(v, -v)); }
 
 
-	template<typename type> t_vector<type> vec_slerp_aux(
+	template<typename type> t_vector<type> vector_slerp_aux(
 		const t_vector<type>& v,
 		const t_vector<type>& w,
 		const type alpha,
 		const type epsilon
 	) {
-		const type cos_angle = lib_math::clamp(v.inner_product(w), type(-1), type(1));
+		const type cos_angle = lib_math::clamp(v.inner(w), type(-1), type(1));
+		const type ccw_slerp = lib_math::sign(v.inner(w.outer(t_vector<type>::y_axis_vector())));
 		const type angle_max = std::acos(cos_angle); // radians
-		const type angle_int = angle_max * alpha;
+		const type angle_int = angle_max * alpha * ccw_slerp;
 
-		// if dot(source, target) ==  1 no interpolation is required
-		// if dot(source, target) == -1 no interpolation is possible
+		// if dot(v, w) is  1, no interpolation is required
+		// if dot(v, w) is -1, no interpolation is possible
 		if (cos_angle <= (type(-1) + epsilon))
 			return t_vector<type>::zero_vector();
 		if (cos_angle >= (type(1) - epsilon))
 			return v;
 
-		// rotate in world-aligned space around y, let caller transform back
+		// rotate in world xz-plane, let caller transform back
 		return (v.rotate_y_ext(angle_int));
 	}
 
-	template<typename type> t_vector<type> vec_slerp(const t_vector<type>& vz, const t_vector<type>& vw, type alpha, type epsilon) {
+	template<typename type> t_vector<type> vector_slerp(const t_vector<type>& vz, const t_vector<type>& vw, type alpha, type epsilon) {
 		// Nth-order polynomial vector interpolation over angles
 		//
 		// two (non-colinear) vectors v and w uniquely span a plane
@@ -73,8 +74,8 @@ namespace lib_math {
 		// align with the world's axis-system simply by transposing
 		// it, such that rotating v around plane-normal to w equals
 		// rotating v' around world-y to w'
-		const t_vector<type> vy = (vz.outer_product(vw)).normalize();
-		const t_vector<type> vx = (vz.outer_product(vy)).normalize();
+		const t_vector<type> vy = (vz.outer(vw)).normalize();
+		const t_vector<type> vx = (vz.outer(vy)).normalize();
 
 		// compose axis-system; vy is plane normal
 		const t_matrix<type> m1 = t_matrix<type>(vx, vy, vz);
@@ -82,7 +83,7 @@ namespace lib_math {
 
 		// inv-transform source and target to axis-aligned vectors
 		// interpolate in the local space, transform back to world
-		return (m1 * vec_slerp_aux(m2 * vz, m2 * vw, alpha, epsilon));
+		return (m1 * vector_slerp_aux(m2 * vz, m2 * vw, alpha, epsilon));
 	}
 
 
@@ -95,6 +96,13 @@ namespace lib_math {
 
 	template<typename type> constexpr type deg_to_rad() { return (M_PI / type(180)); }
 	template<typename type> constexpr type rad_to_deg() { return (type(180) / M_PI); }
+
+	template<typename type> type angle_slerp(type v, type w, type alpha, type eps) {
+		const t_vector<type>& src_vec = angle_to_vector_xz(v);
+		const t_vector<type>& dst_vec = angle_to_vector_xz(w);
+		const t_vector<type>& int_vec = vector_slerp_aux(src_vec, dst_vec, alpha, eps);
+		return (vector_to_angle_xz(int_vec));
+	}
 
 	// clamp an angle in radians to the range [0, 2PI]
 	template<typename type> type clamp_angle_rad(type raw_angle) {

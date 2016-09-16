@@ -601,7 +601,19 @@ namespace lib_math {
 
 		static t_matrix<type> lerp(const t_matrix<type>& src_mat, const t_matrix<type>& dst_mat, const m_vector_type& alpha) {
 			// interpolate (assumed left-handed) rotation; requires xyz_int or zyx_ext
-			const m_vector_type int_angles = lib_math::lerp(src_mat.get_angles_lh(), dst_mat.get_angles_lh(), alpha.x());
+			// NOTE:
+			//   atan2 has a discontinuity at PI/-PI which can not be linearly interpolated
+			//   transforming by (a + 2PI) % 2PI only shifts the discontinuity to 0, angles
+			//   can not be continuously defined (so convert them to vectors instead)
+			// const m_vector_type& int_angles = lib_math::lerp(src_mat.get_angles_lh(), dst_mat.get_angles_lh(), alpha.x());
+			const m_vector_type& src_angles = src_mat.get_angles_lh();
+			const m_vector_type& dst_angles = dst_mat.get_angles_lh();
+			const m_vector_type  int_angles = {
+				lib_math::angle_slerp(src_angles.x(), dst_angles.x(), alpha.x(), 0.00001f),
+				lib_math::angle_slerp(src_angles.y(), dst_angles.y(), alpha.x(), 0.00001f),
+				lib_math::angle_slerp(src_angles.z(), dst_angles.z(), alpha.x(), 0.00001f),
+			};
+
 			// interpolate translation independently
 			const m_vector_type int_transl = lib_math::lerp(src_mat.get_t_vector(), dst_mat.get_t_vector(), alpha.y());
 
