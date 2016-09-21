@@ -4,9 +4,9 @@
 #include <cmath>
 #include <cassert>
 #include <cstddef>
-#include <algorithm>
 
 #include "./math_defs.hpp"
+#include "./quaternion.hpp"
 #include "./tuple.hpp"
 
 // forward-declarations

@@ -23,6 +23,7 @@ namespace lib_math {
 			z() = _z; w() = _w;
 		}
 		t_vector<type>(const type v[MATH_VECTOR_SIZE]) { *this = std::move(t_vector<type>(v[0], v[1], v[2], v[3])); }
+		t_vector<type>(const t_tuple<type>& t) { *this = std::move(t_vector<type>(t.x(), t.y(), t.z(), t.w())); }
 		t_vector<type>(const t_vector<type>& v) { *this = v; }
 
 		bool operator == (const t_vector<type>& v) const { return ( equals(v)); }
