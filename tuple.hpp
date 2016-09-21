@@ -19,21 +19,10 @@ namespace lib_math {
 			z() = _z; w() = _w;
 		}
 		// safer than const type*
-		t_tuple<type>(const type v[LIBGEOM_TUPLE_SIZE]) {
-			x() = v[0]; y() = v[1];
-			z() = v[2]; w() = v[3];
-		}
-		t_tuple<type>(const t_point<type>& p) {
-			x() = p.x(); y() = p.y();
-			z() = p.z(); w() = p.w();
-		}
-		t_tuple<type>(const t_vector<type>& v) {
-			x() = v.x(); y() = v.y();
-			z() = v.z(); w() = v.w();
-		}
-		t_tuple<type>(const t_tuple<type>& t) {
-			*this = t;
-		}
+		t_tuple<type>(const type v[MATH_TUPLE_SIZE]) { *this = std::move(t_tuple<type>(v[0], v[1], v[2], v[3])); }
+		t_tuple<type>(const t_point<type>& p) { *this = std::move(t_tuple<type>(p.x(), p.y(), p.z(), p.w())); }
+		t_tuple<type>(const t_vector<type>& v) { *this = std::move(t_tuple<type>(v.x(), v.y(), v.z(), v.w())); }
+		t_tuple<type>(const t_tuple<type>& t) { *this = t; }
 
 		bool operator == (const t_tuple<type>& t) const { return ( equals(t)); }
 		bool operator != (const t_tuple<type>& t) const { return (!equals(t)); }
@@ -51,15 +40,25 @@ namespace lib_math {
 		t_tuple<type> operator / (const type s) const { return (t_tuple<type>(x() / s, y() / s, z() / s, w() / s)); }
 
 
-		unsigned int hash(const t_tuple<type>& mask = ones_tuple()) const {
-			const unsigned int hx = (*reinterpret_cast<unsigned int*>(const_cast<type*>(&m_values[0]))) * mask.x();
-			const unsigned int hy = (*reinterpret_cast<unsigned int*>(const_cast<type*>(&m_values[1]))) * mask.y();
-			const unsigned int hz = (*reinterpret_cast<unsigned int*>(const_cast<type*>(&m_values[2]))) * mask.z();
-			const unsigned int hw = (*reinterpret_cast<unsigned int*>(const_cast<type*>(&m_values[3]))) * mask.w();
+		uint32_t hash(const t_tuple<type>& mask = ones_tuple()) const {
+			const uint32_t hx = (*reinterpret_cast<uint32_t*>(const_cast<type*>(&m_xyzw[0]))) * mask.x();
+			const uint32_t hy = (*reinterpret_cast<uint32_t*>(const_cast<type*>(&m_xyzw[1]))) * mask.y();
+			const uint32_t hz = (*reinterpret_cast<uint32_t*>(const_cast<type*>(&m_xyzw[2]))) * mask.z();
+			const uint32_t hw = (*reinterpret_cast<uint32_t*>(const_cast<type*>(&m_xyzw[3]))) * mask.w();
 			return (hx ^ hy ^ hz ^ hw);
 		}
-		static unsigned int hash(const t_point<type>& pnt, const t_point<type>& mask) { return 0; }
-		static unsigned int hash(const t_vector<type>& vec, const t_vector<type>& mask) { return 0; }
+
+		static uint32_t hash(const t_point<type>& pnt, const t_point<type>& mask) {
+			const t_tuple<type> p( pnt);
+			const t_tuple<type> m(mask);
+			return (p.hash(m));
+		}
+		static uint32_t hash(const t_vector<type>& vec, const t_vector<type>& mask) {
+			const t_tuple<type> v( vec);
+			const t_tuple<type> m(mask);
+			return (v.hash(m));
+		}
+
 
 		bool equals(const t_tuple<type>& t, const t_tuple<type>& eps = eps_tuple()) const {
 			unsigned int mask = 0;
@@ -73,38 +72,43 @@ namespace lib_math {
 		bool is_point() const { return (w() == 1); }
 		bool is_vector() const { return (w() == 0); }
 
-		static bool equals(const t_point<type>& pnt_a, const t_point<type>& pnt_b, const t_point<type>& eps) { return false; }
-		static bool equals(const t_vector<type>& vec_a, const t_vector<type>& vec_b, const t_vector<type>& eps) { return false; }
+		static bool equals(const t_point<type>& pnt_a, const t_point<type>& pnt_b, const t_point<type>& eps) {
+			return (equals(t_tuple<type>(pnt_a), t_tuple<type>(pnt_b), t_tuple<type>(eps)));
+		}
+		static bool equals(const t_vector<type>& vec_a, const t_vector<type>& vec_b, const t_vector<type>& eps) {
+			return (equals(t_tuple<type>(vec_a), t_tuple<type>(vec_b), t_tuple<type>(eps)));
+		}
+
 
 		void print() const;
-		void sanity_assert() const {
+		void sassert() const {
 			assert(!std::isnan(x()) && !std::isinf(x()));
 			assert(!std::isnan(y()) && !std::isinf(y()));
 			assert(!std::isnan(z()) && !std::isinf(z()));
 			assert(!std::isnan(w()) && !std::isinf(w()));
 		}
 
-		const type* xyzw() const { return &m_values[0]; }
-		      type* xyzw()       { return &m_values[0]; }
+		const type* xyzw() const { return &m_xyzw[0]; }
+		      type* xyzw()       { return &m_xyzw[0]; }
 
 		// no need to make functors from tuples
 		// operator const type* () const { return xyzw(); }
 		// operator       type* ()       { return xyzw(); }
 
-		type  operator [] (unsigned int n) const { return m_values[n]; }
-		type& operator [] (unsigned int n)       { return m_values[n]; }
+		type  operator [] (unsigned int n) const { return m_xyzw[n]; }
+		type& operator [] (unsigned int n)       { return m_xyzw[n]; }
 
 		// same as operator []
-		// type  i(std::size_t n) const { return m_values[n]; }
-		// type& i(std::size_t n)       { return m_values[n]; }
-		type  x() const { return m_values[0]; }
-		type  y() const { return m_values[1]; }
-		type  z() const { return m_values[2]; }
-		type  w() const { return m_values[3]; }
-		type& x()       { return m_values[0]; }
-		type& y()       { return m_values[1]; }
-		type& z()       { return m_values[2]; }
-		type& w()       { return m_values[3]; }
+		// type  i(std::size_t n) const { return m_xyzw[n]; }
+		// type& i(std::size_t n)       { return m_xyzw[n]; }
+		type  x() const { return m_xyzw[0]; }
+		type  y() const { return m_xyzw[1]; }
+		type  z() const { return m_xyzw[2]; }
+		type  w() const { return m_xyzw[3]; }
+		type& x()       { return m_xyzw[0]; }
+		type& y()       { return m_xyzw[1]; }
+		type& z()       { return m_xyzw[2]; }
+		type& w()       { return m_xyzw[3]; }
 
 		static const t_tuple<type>& zero_tuple();
 		static const t_tuple<type>& ones_tuple();
@@ -113,7 +117,7 @@ namespace lib_math {
 		static type eps_scalar() { return ((eps_tuple()).x()); }
 
 	private:
-		type m_values[LIBGEOM_TUPLE_SIZE];
+		type m_xyzw[LIBGEOM_TUPLE_SIZE];
 	};
 
 

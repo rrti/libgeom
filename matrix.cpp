@@ -12,15 +12,15 @@ namespace lib_math {
 
 		for (unsigned int i = 0; i < LIBGEOM_MATRIX_SIZE; i++) {
 			for (unsigned int j = 0; j < LIBGEOM_MATRIX_SIZE; j++) {
-				cofac.m_values[i][j] = CalculateCofactor(m_values, i, j);
+				cofac.m_xyzt[i][j] = CalculateCofactor(m_xyzt, i, j);
 			}
 		}
 
 		const float det =
-			(m_values[0][0] * cofac.m_values[0][0]) +
-			(m_values[0][1] * cofac.m_values[0][1]) +
-			(m_values[0][2] * cofac.m_values[0][2]) +
-			(m_values[0][3] * cofac.m_values[0][3]);
+			(m_xyzt[0][0] * cofac.m_xyzt[0][0]) +
+			(m_xyzt[0][1] * cofac.m_xyzt[0][1]) +
+			(m_xyzt[0][2] * cofac.m_xyzt[0][2]) +
+			(m_xyzt[0][3] * cofac.m_xyzt[0][3]);
 
 		if (det < eps) {
 			// <this> is a singular matrix
@@ -49,7 +49,8 @@ namespace lib_math {
 	// and any internal rotation A(a)B(b)C(c) equals the external
 	// rotation C(c)B(b)A(a) we can easily convert them back to a
 	// left-handed form (left-handed coordinate system is used by
-	// default)
+	// default, although combined with a column-major data layout
+	// convention more typical for right-handed matrices)
 	//
 	// all angles are in radians and returned in PYR order
 	//
@@ -59,20 +60,20 @@ namespace lib_math {
 		float cos_yaw[2] = {0.0f, 0.0f};
 		float ang_sum[2] = {0.0f, 0.0f};
 
-		if (square(eps) > std::fabs(m_values[0 * 4 + 2] + 1.0f)) {
+		if (square(eps) > std::fabs(m_xyzt[0 * 4 + 2] + 1.0f)) {
 			// x.z == -1 (yaw=PI/2) means gimbal lock between X and Z
 			angles[0][R_AXIS_IDX] = (       0.0f);
 			angles[0][Y_AXIS_IDX] = (M_PI * 0.5f);
-			angles[0][P_AXIS_IDX] = (angles[0][R_AXIS_IDX] + std::atan2(m_values[1 * 4 + 0], m_values[2 * 4 + 0]));
+			angles[0][P_AXIS_IDX] = (angles[0][R_AXIS_IDX] + std::atan2(m_xyzt[1 * 4 + 0], m_xyzt[2 * 4 + 0]));
 
 			return angles[0];
 		}
 
-		if (square(eps) > std::fabs(m_values[0 * 4 + 2] - 1.0f)) {
+		if (square(eps) > std::fabs(m_xyzt[0 * 4 + 2] - 1.0f)) {
 			// x.z == 1 (yaw=-PI/2) means gimbal lock between X and Z
 			angles[0][R_AXIS_IDX] =  (       0.0f);
 			angles[0][Y_AXIS_IDX] = -(M_PI * 0.5f);
-			angles[0][P_AXIS_IDX] = (-angles[0][R_AXIS_IDX] + std::atan2(-m_values[1 * 4 + 0], -m_values[2 * 4 + 0]));
+			angles[0][P_AXIS_IDX] = (-angles[0][R_AXIS_IDX] + std::atan2(-m_xyzt[1 * 4 + 0], -m_xyzt[2 * 4 + 0]));
 
 			return angles[0];
 		}
@@ -83,7 +84,7 @@ namespace lib_math {
 		//   angles[i][Y] := theta :=   Yaw := Y-angle
 		//   angles[i][R] :=   phi :=  Roll := Z-angle
 		//
-		angles[0][Y_AXIS_IDX] = -std::asin(m_values[0 * 4 + 2]);
+		angles[0][Y_AXIS_IDX] = -std::asin(m_xyzt[0 * 4 + 2]);
 		angles[1][Y_AXIS_IDX] = (M_PI - angles[0][Y_AXIS_IDX]);
 
 		// yaw cosines
@@ -91,11 +92,11 @@ namespace lib_math {
 		cos_yaw[1] = std::cos(angles[1][Y_AXIS_IDX]);
 
 		// psi angles (pitch)
-		angles[0][P_AXIS_IDX] = std::atan2((m_values[1 * 4 + 2] / cos_yaw[0]), (m_values[2 * 4 + 2] / cos_yaw[0]));
-		angles[1][P_AXIS_IDX] = std::atan2((m_values[1 * 4 + 2] / cos_yaw[1]), (m_values[2 * 4 + 2] / cos_yaw[1]));
+		angles[0][P_AXIS_IDX] = std::atan2((m_xyzt[1 * 4 + 2] / cos_yaw[0]), (m_xyzt[2 * 4 + 2] / cos_yaw[0]));
+		angles[1][P_AXIS_IDX] = std::atan2((m_xyzt[1 * 4 + 2] / cos_yaw[1]), (m_xyzt[2 * 4 + 2] / cos_yaw[1]));
 		// phi angles (roll)
-		angles[0][R_AXIS_IDX] = std::atan2((m_values[0 * 4 + 1] / cos_yaw[0]), (m_values[0 * 4 + 0] / cos_yaw[0]));
-		angles[1][R_AXIS_IDX] = std::atan2((m_values[0 * 4 + 1] / cos_yaw[1]), (m_values[0 * 4 + 0] / cos_yaw[1]));
+		angles[0][R_AXIS_IDX] = std::atan2((m_xyzt[0 * 4 + 1] / cos_yaw[0]), (m_xyzt[0 * 4 + 0] / cos_yaw[0]));
+		angles[1][R_AXIS_IDX] = std::atan2((m_xyzt[0 * 4 + 1] / cos_yaw[1]), (m_xyzt[0 * 4 + 0] / cos_yaw[1]));
 
 		ang_sum[0] = (m_vector_type::ones_vector()).inner(angles[0].abs()); // |p0|+|y0|+|r0|
 		ang_sum[1] = (m_vector_type::ones_vector()).inner(angles[1].abs()); // |p1|+|y1|+|r1|
@@ -118,10 +119,10 @@ namespace lib_math {
 
 	template<> void t_matrix44f::print(const char* tabs) const {
 		printf("\n%s  X       Y       Z       T\n%s", tabs, tabs);
-		for (unsigned int n = 0; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_values[n]); } printf("\n%s", tabs); // 1st row
-		for (unsigned int n = 1; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_values[n]); } printf("\n%s", tabs); // 2nd row
-		for (unsigned int n = 2; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_values[n]); } printf("\n%s", tabs); // 3rd row
-		for (unsigned int n = 3; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_values[n]); } printf("\n%s", tabs); // 4th row
+		for (unsigned int n = 0; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 1st row
+		for (unsigned int n = 1; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 2nd row
+		for (unsigned int n = 2; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 3rd row
+		for (unsigned int n = 3; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 4th row
 		printf("\n");
 	}
 };

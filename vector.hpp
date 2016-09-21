@@ -6,7 +6,6 @@
 #include <cstdint>
 
 #include <algorithm>
-#include <functional>
 
 #include "./math_defs.hpp"
 #include "./template_funcs.hpp"
@@ -23,13 +22,8 @@ namespace lib_math {
 			x() = _x; y() = _y;
 			z() = _z; w() = _w;
 		}
-		t_vector<type>(const type v[LIBGEOM_VECTOR_SIZE]) {
-			x() = v[0]; y() = v[1];
-			z() = v[2]; w() = v[3];
-		}
-		t_vector<type>(const t_vector<type>& v) {
-			*this = v;
-		}
+		t_vector<type>(const type v[MATH_VECTOR_SIZE]) { *this = std::move(t_vector<type>(v[0], v[1], v[2], v[3])); }
+		t_vector<type>(const t_vector<type>& v) { *this = v; }
 
 		bool operator == (const t_vector<type>& v) const { return ( equals(v)); }
 		bool operator != (const t_vector<type>& v) const { return (!equals(v)); }
@@ -84,8 +78,8 @@ namespace lib_math {
 		t_tuple<type> to_tuple() const {                   return (t_tuple<type>(                 *this)); }
 		t_point<type> to_point() const { assert(w() == 0); return (t_point<type>::zero_point() + (*this)); }
 
-		// inner product is only defined between vectors and vectors
-		// w-components are normally zero so they do not contribute!
+		// inner product is only defined between vectors and vectors;
+		// w-components are normally zero and do not contribute to it
 		// (so dedicated "*_xyz" convenience wrappers can be omitted)
 		type inner_product(const t_vector<type>& v, const t_vector<type>& mask = xyz_vector()) const { return (inner(v, mask)); }
 		type inner        (const t_vector<type>& v, const t_vector<type>& mask = xyz_vector()) const {
@@ -263,8 +257,8 @@ namespace lib_math {
 		}
 
 
-		t_vector<type>      randomize(std::function<type(void)>& rng) const { return (t_vector<type>((rng() * 2) - 1, (rng() * 2) - 1, (rng() * 2) - 1)); }
-		t_vector<type> unit_randomize(std::function<type(void)>& rng, const type eps = t_tuple<type>::eps_scalar()) const {
+		template<typename t_rng> t_vector<type>  randomize(t_rng& rng) const { return (t_vector<type>((rng() * 2) - 1, (rng() * 2) - 1, (rng() * 2) - 1)); }
+		template<typename t_rng> t_vector<type> urandomize(t_rng& rng, const type eps = t_tuple<type>::eps_scalar()) const {
 			t_vector<type> r = xyz_vector();
 
 			while (std::abs(r.sq_magnit() - 1) > eps) {
@@ -276,16 +270,21 @@ namespace lib_math {
 			return r;
 		}
 
-		t_vector<type>&      randomize_ref(std::function<type(void)>& rng                                              ) { return ((*this) =      randomize(   )); }
-		t_vector<type>& unit_randomize_ref(std::function<type(void)>& rng, const type eps = t_tuple<type>::eps_scalar()) { return ((*this) = unit_randomize(eps)); }
+		template<typename t_rng> t_vector<type>&  randomize_ref(t_rng& rng                                              ) { return ((*this) =  randomize(   )); }
+		template<typename t_rng> t_vector<type>& urandomize_ref(t_rng& rng, const type eps = t_tuple<type>::eps_scalar()) { return ((*this) = urandomize(eps)); }
 
 
-		unsigned int hash(const t_vector<type>& mask = ones_vector()) const {
-			return ((t_tuple<type>(*this)).hash(t_tuple<type>(mask)));
+		uint32_t hash(const t_vector<type>& mask = ones_vector()) const {
+			const t_tuple<type> t(*this);
+			const t_tuple<type> m( mask);
+			return (t.hash(m));
 		}
 
 		bool equals(const t_vector<type>& vec, const t_vector<type>& eps = eps_vector()) const {
-			return ((t_tuple<type>(*this)).equals(t_tuple<type>(vec), t_tuple<type>(eps)));
+			const t_tuple<type> t(*this);
+			const t_tuple<type> v(  vec);
+			const t_tuple<type> e(  eps);
+			return (t.equals(v, e));
 		}
 		// vector is normalizable if its (masked) magnitude != {0 or 1}
 		bool normalizable(const t_vector<type>& mask, const type eps = t_tuple<type>::eps_scalar()) const {
@@ -298,25 +297,28 @@ namespace lib_math {
 		bool normalizable_yz(const type eps = t_tuple<type>::eps_scalar()) const { return (normalizable(yz_vector(), eps * eps)); }
 		#endif
 
+
 		void print() const { (t_tuple<type>(*this)).print(); }
-		void sanity_assert() const { (t_tuple<type>(*this)).sanity_assert(); }
-
-		const type* xyzw() const { return &m_values[0]; }
-		      type* xyzw()       { return &m_values[0]; }
-
-		type  operator [] (unsigned int n) const { return m_values[n]; }
-		type& operator [] (unsigned int n)       { return m_values[n]; }
-
-		type  x() const { return m_values[0]; }
-		type  y() const { return m_values[1]; }
-		type  z() const { return m_values[2]; }
-		type  w() const { return m_values[3]; }
-		type& x()       { return m_values[0]; }
-		type& y()       { return m_values[1]; }
-		type& z()       { return m_values[2]; }
-		type& w()       { return m_values[3]; }
+		void sassert() const { (t_tuple<type>(*this)).sassert(); }
 
 
+		const type* xyzw() const { return &m_xyzw[0]; }
+		      type* xyzw()       { return &m_xyzw[0]; }
+
+		type  operator [] (uint32_t n) const { return m_xyzw[n]; }
+		type& operator [] (uint32_t n)       { return m_xyzw[n]; }
+
+		type  x() const { return m_xyzw[0]; }
+		type  y() const { return m_xyzw[1]; }
+		type  z() const { return m_xyzw[2]; }
+		type  w() const { return m_xyzw[3]; }
+		type& x()       { return m_xyzw[0]; }
+		type& y()       { return m_xyzw[1]; }
+		type& z()       { return m_xyzw[2]; }
+		type& w()       { return m_xyzw[3]; }
+
+
+		static const t_vector<type>&    pi_vector();
 		static const t_vector<type>&   eps_vector();
 		static const t_vector<type>&   inf_vector();
 		static const t_vector<type>&  zero_vector();
@@ -330,9 +332,10 @@ namespace lib_math {
 		static const t_vector<type>&    xy_vector();
 		static const t_vector<type>&    yz_vector();
 		static const t_vector<type>&   xyz_vector();
+		static const t_vector<type>&  xyzw_vector();
 
 	private:
-		type m_values[LIBGEOM_VECTOR_SIZE];
+		type m_xyzw[LIBGEOM_VECTOR_SIZE];
 	};
 
 

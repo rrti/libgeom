@@ -13,10 +13,21 @@ namespace lib_math {
 	template<typename type> struct t_matrix;
 	template<typename type> struct t_vector;
 
-	template<typename type> type  __attribute__ ((force_align_arg_pointer))  sqrt_sse(type v) {
+	// note: these three are already in gcc's cmath
+	template<typename type> type copysign_builtin(type v, type w) { return (__builtin_copysignf(v, w)); }
+	template<typename type> type     sqrt_builtin(type v) { return (          __builtin_sqrtf(v)); }
+	template<typename type> type inv_sqrt_builtin(type v) { return (type(1) / __builtin_sqrtf(v)); }
+
+	#if 0
+	// not needed on x64 architectures
+	#define attr_align_stack __attribute__ ((force_align_arg_pointer))
+	#else
+	#define attr_align_stack
+	#endif
+	template<typename type> type  attr_align_stack      sqrt_sse(type v) {
 		__m128 vec = _mm_set_ss(v); vec = _mm_sqrt_ss(vec); return (_mm_cvtss_f32(vec));
 	}
-	template<typename type> type  __attribute__ ((force_align_arg_pointer))  inv_sqrt_sse(type v) {
+	template<typename type> type  attr_align_stack  inv_sqrt_sse(type v) {
 		__m128 vec = _mm_set_ss(v); vec = _mm_rsqrt_ss(vec); return (_mm_cvtss_f32(vec));
 	}
 
@@ -26,14 +37,14 @@ namespace lib_math {
 	template<typename type> type min3(type a, type b, type c) { return (std::min<type>(a, std::min<type>(b, c))); }
 	template<typename type> type max3(type a, type b, type c) { return (std::max<type>(a, std::max<type>(b, c))); }
 	template<typename type> type sign(type v) { return ((v >= type(0)) * type(2) - type(1)); }
-	// (type(1) - alpha) works only if <type> is a scalar, so rewrite it to a form accepting
+	// (type(1) - wgt) works only if <type> is a scalar, so we rewrite it to a form accepting
 	// both scalars and vectors (X * (1 - a) + Y * a == X - X * a + Y * a == X - (X + Y) * a)
-	// the latter however still requires alpha to be specified as a vector which is painful
-	// template<typename type> type lerp(type vmin, type vmax, type alpha) { return (vmin * (type(1) - alpha) + vmax * alpha); }
-	// template<typename type> type lerp(type vmin, type vmax, type alpha) { return (vmin - (vmin + vmax) * alpha); }
-	template<typename type> type lerp(type vmin, type vmax, float alpha) { return (vmin * (1.0f - alpha) + vmax * alpha); }
-	template<typename type> type norm(type v, type vmin, type vmax) { return ((v - vmin) / (vmax - vmin)); }
-	template<typename type> type clamp(type v, type vmin, type vmax) { return (std::max<type>(vmin, std::min<type>(vmax, v))); }
+	// the latter however still requires wgt to be specified as a vector which is painful
+	// template<typename type> type lerp(type v0, type v1, type wgt) { return (v0 * (type(1) - wgt) + v1 * wgt); }
+	// template<typename type> type lerp(type v0, type v1, type wgt) { return (v0 - (v0 + v1) * wgt); }
+	template<typename type> type lerp(type v0, type v1, float wgt) { return (v0 * (1.0f - wgt) + v1 * wgt); }
+	template<typename type> type norm(type v, type v0, type v1) { return ((v - v0) / (v1 - v0)); }
+	template<typename type> type clamp(type v, type v0, type v1) { return (std::max<type>(v0, std::min<type>(v1, v))); }
 	template<typename type> type square(type v) { return (v * v); }
 
 	template<typename type> type abss(type v) { return (lib_math::sign(v) * v); }
@@ -41,39 +52,68 @@ namespace lib_math {
 	template<typename type> type absm(type v) { return (std::max(v, -v)); }
 
 
-	template<typename type> t_vector<type> vector_slerp_aux(
+	template<typename type> t_vector<type> nlerp(const t_vector<type>& v0, const t_vector<type>& v1, type wgt) {
+		assert(v0 != -v1);
+		const t_vector<type>& vi = lib_math::lerp(v0, v1, wgt);
+		const t_vector<type>  vn = vi.normalize();
+		return vn;
+	}
+	template<typename type> t_vector<type> slerp(const t_vector<type>& v0, const t_vector<type>& v1, type wgt, type eps) {
+		// calculate the angle subtended by the arc spanned by unit-vectors
+		// v0 and v1 (angle=acos(dot(v0, v1))); the interpolated vector (vi)
+		// is a linear combination of the orthonormal basis (v0, v2) where
+		//   v2 = normalize(v1 - v0 * dot(v0, v1))
+		//   vi = v0 * cos(angle * wgt) + v2 * sin(angle * wgt)
+		const type  cosa = lib_math::clamp(v0.inner(v1), type(-1), type(1));
+		const type acosa = std::acos(cosa);
+		const type isina = type(1) / std::sin(acosa);
+
+		// with an added normalize, this reduces to the general nlerp
+		if (std::fabs(cosa) > (type(1) - eps))
+			return (lib_math::lerp(v0, v1, wgt));
+
+		// note: explicit normalization is more accurate
+		// const t_vector<type> v2 = (v1 - v0 * cosa) * isina;
+		// const t_vector<type> vi = v0 * std::cos(acosa * wgt) + v2 * std::sin(acosa * wgt);
+		// return vi;
+		// standard formulation
+		const t_vector<type> w0 = v0 * (std::sin((type(1) - wgt) * acosa) * isina);
+		const t_vector<type> w1 = v1 * (std::sin((type(0) + wgt) * acosa) * isina);
+		return (w0 + w1);
+	}
+
+	#if 0
+	template<typename type> t_vector<type> slerp_aux(
 		const t_vector<type>& v,
 		const t_vector<type>& w,
-		const type alpha,
-		const type epsilon
+		const type wgt,
+		const type eps
 	) {
 		const type cos_angle = lib_math::clamp(v.inner(w), type(-1), type(1));
 		const type ccw_slerp = lib_math::sign(v.inner(w.outer(t_vector<type>::y_vector())));
 		const type angle_max = std::acos(cos_angle); // radians
-		const type angle_int = angle_max * alpha * ccw_slerp;
+		const type angle_int = angle_max * wgt * ccw_slerp;
 
 		// if dot(v, w) is  1, no interpolation is required
 		// if dot(v, w) is -1, no interpolation is possible
-		if (cos_angle <= (type(-1) + epsilon))
+		if (cos_angle <= (type(-1) + eps))
 			return t_vector<type>::zero_vector();
-		if (cos_angle >= (type(1) - epsilon))
+		if (cos_angle >= (type(1) - eps))
 			return v;
 
 		// rotate in world xz-plane, let caller transform back
 		return (v.rotate_y_ext(angle_int));
 	}
 
-	template<typename type> t_vector<type> vector_slerp(const t_vector<type>& vz, const t_vector<type>& vw, type alpha, type epsilon) {
+	template<typename type> t_vector<type> slerp(const t_vector<type>& vz, const t_vector<type>& vw, type wgt, type eps) {
 		// Nth-order polynomial vector interpolation over angles
 		//
-		// two (non-colinear) vectors v and w uniquely span a plane
-		// with normal (v cross w); we could rotate directly in this
-		// plane to do interpolation but opt for the simple approach
-		//
-		// construct an axis-system around the normal and make this
-		// align with the world's axis-system simply by transposing
-		// it, such that rotating v around plane-normal to w equals
-		// rotating v' around world-y to w'
+		// two (non-colinear) vectors v and w uniquely span a plane with
+		// normal (v cross w); we could rotate directly in this plane to
+		// do interpolation but take the simple approach of constructing
+		// an axis-system around N and making this align with the world
+		// axis-system by transposing it, s.t. rotating v around N to w
+		// equals rotating v' around world-y to w'
 		const t_vector<type> vy = (vz.outer(vw)).normalize();
 		const t_vector<type> vx = (vz.outer(vy)).normalize();
 
@@ -83,8 +123,9 @@ namespace lib_math {
 
 		// inv-transform source and target to axis-aligned vectors
 		// interpolate in the local space, transform back to world
-		return (m1 * vector_slerp_aux(m2 * vz, m2 * vw, alpha, epsilon));
+		return (m1 * slerp_aux(m2 * vz, m2 * vw, wgt, eps));
 	}
+	#endif
 
 
 	template<typename type> t_vector<type> angle_to_vector_xy(type angle) { return (t_vector<type>(std::cos(angle), std::sin(angle),         type(0))); }
@@ -97,14 +138,18 @@ namespace lib_math {
 	template<typename type> constexpr type deg_to_rad() { return (M_PI / type(180)); }
 	template<typename type> constexpr type rad_to_deg() { return (type(180) / M_PI); }
 
-	template<typename type> type angle_slerp(type v, type w, type alpha, type eps) {
-		// note: only valid for angles in [-PI, PI], not [0, 2PI]
-		if (sign(v) == sign(w))
-			return (lerp(v, w, alpha));
-		const t_vector<type>& src_vec = angle_to_vector_xz(v);
-		const t_vector<type>& dst_vec = angle_to_vector_xz(w);
-		const t_vector<type>& int_vec = vector_slerp_aux(src_vec, dst_vec, alpha, eps);
-		return (vector_to_angle_xz(int_vec));
+	template<typename type> type angle_lerp(type v0, type v1, type wgt, type eps) {
+		// NOTE:
+		//   angles can not be continuously defined, so this approach is semi-valid
+		//   (e.g. atan2 has a transition at PI/-PI which breaks lerp, transforming
+		//   by (a + 2PI) % 2PI only shifts the discontinuity to 2PI/0)
+		//   comparing signs is only valid for angles in [-PI, PI], not [0, 2PI]
+		if (sign(v0) == sign(v1))
+			return (lerp(v0, v1, wgt));
+		const t_vector<type>& vv0 = angle_to_vector_xz(v0);
+		const t_vector<type>& vv1 = angle_to_vector_xz(v1);
+		const t_vector<type>& vvi = lib_math::slerp(vv0, vv1, wgt, eps);
+		return (vector_to_angle_xz(vvi));
 	}
 
 	// clamp an angle in radians to the range [0, 2PI]
@@ -146,7 +191,7 @@ namespace lib_math {
 		if (n > 0) {
 			// round number to <n> decimals
 			const int i = std::min(7, int(sizeof(POWERS_OF_TEN) / sizeof(POWERS_OF_TEN[0])) - 1);
-			const int n = clamp(n, 0, i);
+			const int n = lib_math::clamp(n, 0, i);
 
 			const type vinteg = std::floor(v);
 			const type vfract = v - vinteg;

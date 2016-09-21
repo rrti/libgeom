@@ -2,8 +2,8 @@
 #define LIBGEOM_POINT_HDR
 
 #include <cassert>
-#include <cmath>
 #include <cstdint>
+#include <utility>
 
 #include "./math_defs.hpp"
 
@@ -20,13 +20,8 @@ namespace lib_math {
 			x() = _x; y() = _y;
 			z() = _z; w() = _w;
 		}
-		t_point<type>(const type v[LIBGEOM_POINT_SIZE]) {
-			x() = v[0]; y() = v[1];
-			z() = v[2]; w() = v[3];
-		}
-		t_point<type>(const t_point<type>& p) {
-			*this = p;
-		}
+		t_point<type>(const type v[MATH_POINT_SIZE]) { *this = std::move(t_point<type>(v[0], v[1], v[2], v[3])); }
+		t_point<type>(const t_point<type>& p) { *this = p; }
 
 		bool operator == (const t_point<type>& p) const { return ( equals(p)); }
 		bool operator != (const t_point<type>& p) const { return (!equals(p)); }
@@ -48,35 +43,42 @@ namespace lib_math {
 		// t_point<type> operator - () const { return (t_point<type>(-x(), -y(), -z(), -w())); }
 
 		// cf. vector::to_point
-		t_tuple<type> to_tuple() const { return (t_tuple<type>(*this)); }
-		t_vector<type> to_vector() const { assert(w() == 1); return ((*this) - zero_point()); }
+		t_tuple <type> to_tuple () const {                   return (t_tuple<type>(*this)               ); }
+		t_vector<type> to_vector() const { assert(w() == 1); return (             (*this) - zero_point()); }
 
 
-		unsigned int hash(const t_point<type>& mask = ones_point()) const {
-			return ((t_tuple<type>(*this)).hash(t_tuple<type>(mask)));
+		uint32_t hash(const t_point<type>& mask = ones_point()) const {
+			const t_tuple<type> t(*this);
+			const t_tuple<type> m( mask);
+			return (t.hash(m));
 		}
 
 		bool equals(const t_point<type>& pnt, const t_point<type>& eps = eps_point()) const {
-			return ((t_tuple<type>(*this)).equals(t_tuple<type>(pnt), t_tuple<type>(eps)));
+			const t_tuple<type> t(*this);
+			const t_tuple<type> p(  pnt);
+			const t_tuple<type> e(  eps);
+			return (t.equals(p, e));
 		}
 
+
 		void print() const { (t_tuple<type>(*this)).print(); }
-		void sanity_assert() const { (t_tuple<type>(*this)).sanity_assert(); }
+		void sassert() const { (t_tuple<type>(*this)).sassert(); }
 
-		const type* xyzw() const { return &m_values[0]; }
-		      type* xyzw()       { return &m_values[0]; }
 
-		type  operator [] (unsigned int n) const { return m_values[n]; }
-		type& operator [] (unsigned int n)       { return m_values[n]; }
+		const type* xyzw() const { return &m_xyzw[0]; }
+		      type* xyzw()       { return &m_xyzw[0]; }
 
-		type  x() const { return m_values[0]; }
-		type  y() const { return m_values[1]; }
-		type  z() const { return m_values[2]; }
-		type  w() const { return m_values[3]; }
-		type& x()       { return m_values[0]; }
-		type& y()       { return m_values[1]; }
-		type& z()       { return m_values[2]; }
-		type& w()       { return m_values[3]; }
+		type  operator [] (uint32_t n) const { return m_xyzw[n]; }
+		type& operator [] (uint32_t n)       { return m_xyzw[n]; }
+
+		type  x() const { return m_xyzw[0]; }
+		type  y() const { return m_xyzw[1]; }
+		type  z() const { return m_xyzw[2]; }
+		type  w() const { return m_xyzw[3]; }
+		type& x()       { return m_xyzw[0]; }
+		type& y()       { return m_xyzw[1]; }
+		type& z()       { return m_xyzw[2]; }
+		type& w()       { return m_xyzw[3]; }
 
 
 		static const t_point<type>&  eps_point();
@@ -87,7 +89,7 @@ namespace lib_math {
 		static type eps_scalar() { return (eps_point.x()); }
 
 	private:
-		type m_values[LIBGEOM_POINT_SIZE];
+		type m_xyzw[LIBGEOM_POINT_SIZE];
 	};
 
 
