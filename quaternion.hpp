@@ -1,5 +1,5 @@
-#ifndef MATH_QUATERNION_HDR
-#define MATH_QUATERNION_HDR
+#ifndef LIBGEOM_QUATERNION_HDR
+#define LIBGEOM_QUATERNION_HDR
 
 #include <cmath>
 #include <cassert>
@@ -295,6 +295,7 @@ namespace lib_math {
 		#if 0
 		bool is_pure() const { return (a() == type(0) && bcd_vector() != t_vector<type>::zero_vector()); }
 		bool is_real() const { return (a() != type(0) && bcd_vector() == t_vector<type>::zero_vector()); }
+		bool is_unit() const { return (a() == type(1) && bcd_vector() == t_vector<type>::zero_vector()); }
 		#else
 		bool is_pure() const { return (a() == type(0) && (b() != type(0) || c() != type(0) || c() != type(0))); }
 		bool is_real() const { return (a() != type(0) && (b() == type(0) && c() == type(0) && c() == type(0))); }
