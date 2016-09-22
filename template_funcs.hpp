@@ -43,9 +43,9 @@ namespace lib_math {
 	// template<typename type> type lerp(type v0, type v1, type wgt) { return (v0 * (type(1) - wgt) + v1 * wgt); }
 	// template<typename type> type lerp(type v0, type v1, type wgt) { return (v0 - (v0 + v1) * wgt); }
 	template<typename type> type lerp(type v0, type v1, float wgt) { return (v0 * (1.0f - wgt) + v1 * wgt); }
-	template<typename type> type norm(type v, type v0, type v1) { return ((v - v0) / (v1 - v0)); }
+	template<typename type> type scale(type v, type v0, type v1) { return ((v - v0) / (v1 - v0)); }
 	// convert a value x on scale [a,b] to a value y on scale [c,d]
-	template<typename type> type rescale(type x, type a, type b, type c, type d) { return (c + (d - c) * (x - a) / (b - a)); }
+	template<typename type> type rescale(type x, type a, type b, type c, type d) { return (c + (d - c) * scale(x, a, b)); }
 	template<typename type> type clamp(type v, type v0, type v1) { return (std::max<type>(v0, std::min<type>(v1, v))); }
 	template<typename type> type square(type v) { return (v * v); }
 
