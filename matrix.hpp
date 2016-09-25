@@ -9,19 +9,21 @@
 #include "./quaternion.hpp"
 #include "./tuple.hpp"
 
+#define MATRIX_SIZE 16
+
 // forward-declarations
 namespace lib_math {
-	template<typename type> struct t_point;
-	template<typename type> struct t_vector;
+	template<typename type> struct t_point4t;
+	template<typename type> struct t_vector4t;
 
-	template<typename type/*, size_t size = LIBGEOM_MATRIX_SIZE*/> struct t_matrix {
-	typedef t_point<type> m_point_type;
-	typedef t_vector<type> m_vector_type;
-	typedef t_matrix<type> m_matrix_type;
+	template<typename type> struct t_matrix44t {
+	typedef t_point4t<type> m_point_type;
+	typedef t_vector4t<type> m_vector_type;
+	typedef t_matrix44t<type> m_matrix_type;
 	public:
-		t_matrix<type>(const type* m) { set_raw_matrix(m); }
-		t_matrix<type>(const m_matrix_type& m) { *this = m; }
-		t_matrix<type>(
+		t_matrix44t<type>(const type* m) { set_raw_matrix(m); }
+		t_matrix44t<type>(const m_matrix_type& m) { *this = m; }
+		t_matrix44t<type>(
 			const m_vector_type& x_vec = m_vector_type::x_vector(),
 			const m_vector_type& y_vec = m_vector_type::y_vector(),
 			const m_vector_type& z_vec = m_vector_type::z_vector(),
@@ -41,14 +43,14 @@ namespace lib_math {
 		bool operator == (const m_matrix_type& m) const {
 			unsigned int r = 0;
 
-			for (unsigned int n = 0; n < LIBGEOM_MATRIX_SIZE; n += 4) {
-				r += fp_eq(m_xyzt[n + 0], m[n + 0], t_tuple<type>::eps_scalar());
-				r += fp_eq(m_xyzt[n + 1], m[n + 1], t_tuple<type>::eps_scalar());
-				r += fp_eq(m_xyzt[n + 2], m[n + 2], t_tuple<type>::eps_scalar());
-				r += fp_eq(m_xyzt[n + 3], m[n + 3], t_tuple<type>::eps_scalar());
+			for (unsigned int n = 0; n < MATRIX_SIZE; n += 4) {
+				r += fp_eq(m_xyzt[n + 0], m[n + 0], M_FEPS);
+				r += fp_eq(m_xyzt[n + 1], m[n + 1], M_FEPS);
+				r += fp_eq(m_xyzt[n + 2], m[n + 2], M_FEPS);
+				r += fp_eq(m_xyzt[n + 3], m[n + 3], M_FEPS);
 			}
 
-			return (r == LIBGEOM_MATRIX_SIZE);
+			return (r == MATRIX_SIZE);
 		}
 
 		bool operator != (const m_matrix_type& m) const {
@@ -114,7 +116,7 @@ namespace lib_math {
 			return r;
 		}
 
-		m_matrix_type operator * (const type m[LIBGEOM_MATRIX_SIZE]) const {
+		m_matrix_type operator * (const type* m) const {
 			return ((*this) * m_matrix_type(&m[0]));
 		}
 
@@ -123,7 +125,7 @@ namespace lib_math {
 		m_matrix_type operator + (const m_matrix_type& m) const {
 			m_matrix_type m_r;
 
-			for (unsigned int n = 0; n < LIBGEOM_MATRIX_SIZE; n += 4) {
+			for (unsigned int n = 0; n < MATRIX_SIZE; n += 4) {
 				m_r[n + 0] = m_xyzt[n + 0] + m[n + 0];
 				m_r[n + 1] = m_xyzt[n + 1] + m[n + 1];
 				m_r[n + 2] = m_xyzt[n + 2] + m[n + 2];
@@ -154,7 +156,7 @@ namespace lib_math {
 		m_matrix_type operator * (const type s) const {
 			m_matrix_type m_r;
 
-			for (unsigned int n = 0; n < LIBGEOM_MATRIX_SIZE; n += 4) {
+			for (unsigned int n = 0; n < MATRIX_SIZE; n += 4) {
 				m_r[n + 0] = m_xyzt[n + 0] * s;
 				m_r[n + 1] = m_xyzt[n + 1] * s;
 				m_r[n + 2] = m_xyzt[n + 2] * s;
@@ -263,26 +265,20 @@ namespace lib_math {
 			return r;
 		}
 
-		// "affine" assumes matrix only does translation and rotation
+		// assumes this matrix only performs translation and rotation
 		m_matrix_type invert_affine() const {
 			m_matrix_type r = *this;
 
 			// transpose the rotation
 			r.transpose_rotation_ref();
-
-			// get the inverse translation
-			const m_vector_type t_pre = -r.get_t_vector();
-			const m_vector_type t_inv = r * t_pre;
-
-			// do the positional inversion
-			r.set_t_vector(t_inv);
+			// set the inverse translation; R*v ignores T
+			r.set_t_vector(r * -r.get_t_vector());
 			return r;
 		}
 		// generalized inverse for non-orthonormal 4x4 matrices
 		// A^-1 = (1 / det(A)) (C^T)_{ij} = (1 / det(A)) C_{ji}
 		// where C is the matrix of cofactors
-		//
-		m_matrix_type invert_general(const type eps = t_tuple<type>::eps_scalar()) const;
+		m_matrix_type invert_projective(const type eps = M_FEPS) const;
 
 		m_matrix_type& orthonormalize_ref() { return ((*this) = orthonormalize()); }
 		m_matrix_type& translate_ref(const m_vector_type& tv) { return ((*this) = translate(tv)); }
@@ -541,8 +537,8 @@ namespace lib_math {
 		}
 
 
-		m_matrix_type& add_raw_matrix(const float m[MATH_MATRIX_SIZE]) {
-			for (unsigned int i = 0; i < MATH_MATRIX_SIZE; i += 4) {
+		m_matrix_type& add_raw_matrix(const type* m) {
+			for (unsigned int i = 0; i < MATRIX_SIZE; i += 4) {
 				m_xyzt[i + 0] += m[i + 0];
 				m_xyzt[i + 1] += m[i + 1];
 				m_xyzt[i + 2] += m[i + 2];
@@ -551,8 +547,8 @@ namespace lib_math {
 			return *this;
 		}
 
-		m_matrix_type& set_raw_matrix(const float m[MATH_MATRIX_SIZE]) {
-			for (unsigned int i = 0; i < MATH_MATRIX_SIZE; i += 4) {
+		m_matrix_type& set_raw_matrix(const type* m) {
+			for (unsigned int i = 0; i < MATRIX_SIZE; i += 4) {
 				m_xyzt[i + 0] = m[i + 0];
 				m_xyzt[i + 1] = m[i + 1];
 				m_xyzt[i + 2] = m[i + 2];
@@ -562,7 +558,7 @@ namespace lib_math {
 		}
 
 		m_matrix_type& set_diag_matrix(type diag_elem) {
-			for (unsigned int n = 0; n < MATH_MATRIX_SIZE; n += 4) {
+			for (unsigned int n = 0; n < MATRIX_SIZE; n += 4) {
 				m_xyzt[n + 0] = diag_elem * type(n ==  0);
 				m_xyzt[n + 1] = diag_elem * type(n ==  4);
 				m_xyzt[n + 2] = diag_elem * type(n ==  8);
@@ -576,7 +572,8 @@ namespace lib_math {
 
 		void print(const char* tabs = "") const;
 
-		unsigned int is_identity(const type eps = t_tuple<type>::eps_scalar()) const {
+
+		unsigned int is_identity(const type eps = M_FEPS) const {
 			const m_vector_type& xv = get_x_vector();
 			const m_vector_type& yv = get_y_vector();
 			const m_vector_type& zv = get_z_vector();
@@ -591,7 +588,8 @@ namespace lib_math {
 
 			return n;
 		}
-		unsigned int is_orthonormal(const type eps = t_tuple<type>::eps_scalar()) const {
+
+		unsigned int is_orthonormal(const type eps = M_FEPS) const {
 			const m_vector_type& xv = get_x_vector();
 			const m_vector_type& yv = get_y_vector();
 			const m_vector_type& zv = get_z_vector();
@@ -599,20 +597,20 @@ namespace lib_math {
 			unsigned int n = 0;
 
 			// test angles
-			n += ((std::fabs(xv.inner(yv)) >= eps) * (1 << 0));
-			n += ((std::fabs(yv.inner(zv)) >= eps) * (1 << 1));
-			n += ((std::fabs(xv.inner(zv)) >= eps) * (1 << 2));
+			n += ((type(1) - fp_eq(xv.inner(yv), type(0), eps)) * (1 << 0));
+			n += ((type(1) - fp_eq(yv.inner(zv), type(0), eps)) * (1 << 1));
+			n += ((type(1) - fp_eq(xv.inner(zv), type(0), eps)) * (1 << 2));
 			// test lengths
-			n += ((std::fabs(type(1) - xv.sq_magnit()) >= eps) * (1 << 3));
-			n += ((std::fabs(type(1) - yv.sq_magnit()) >= eps) * (1 << 4));
-			n += ((std::fabs(type(1) - zv.sq_magnit()) >= eps) * (1 << 5));
+			n += ((type(1) - fp_eq(xv.sq_len(), type(1), eps)) * (1 << 3));
+			n += ((type(1) - fp_eq(yv.sq_len(), type(1), eps)) * (1 << 4));
+			n += ((type(1) - fp_eq(zv.sq_len(), type(1), eps)) * (1 << 5));
 
 			return n;
 		}
 
 
-		m_vector_type get_angles_rh(const type eps = t_tuple<type>::eps_scalar()) const;
-		m_vector_type get_angles_lh(const type eps = t_tuple<type>::eps_scalar()) const;
+		m_vector_type get_angles_rh(const type eps = M_FEPS) const;
+		m_vector_type get_angles_lh(const type eps = M_FEPS) const;
 
 
 		static m_matrix_type lerp(const m_matrix_type& src_mat, const m_matrix_type& dst_mat, const m_vector_type& alpha) {
@@ -666,12 +664,12 @@ namespace lib_math {
 	private:
 		// stores the elements in column-major order
 		// m_xyzt[0 .. 3] represents the x-axis, etc
-		type m_xyzt[LIBGEOM_MATRIX_SIZE];
+		type m_xyzt[MATRIX_SIZE];
 	};
 
 
-	typedef t_matrix< float> t_matrix44f;
-	typedef t_matrix<double> t_matrix44d;
+	typedef t_matrix44t< float> t_matrix44f;
+	typedef t_matrix44t<double> t_matrix44d;
 
 	// aliases for less typing
 	typedef t_matrix44f t_mat44f;

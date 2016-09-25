@@ -9,38 +9,38 @@
 #include "./template_funcs.hpp"
 
 namespace lib_math {
-	template<typename type> struct t_point;
-	template<typename type> struct t_vector;
+	template<typename type> struct t_point4t;
+	template<typename type> struct t_vector4t;
 
-	template<typename type> struct t_tuple {
+	template<typename type> struct t_tuple4t {
 	public:
-		t_tuple<type>(const type _x = 0, const type _y = 0, const type _z = 0, const type _w = 0) {
+		t_tuple4t<type>(const type _x = type(0), const type _y = type(0), const type _z = type(0), const type _w = type(0)) {
 			x() = _x; y() = _y;
 			z() = _z; w() = _w;
 		}
 		// safer than const type*
-		t_tuple<type>(const type v[MATH_TUPLE_SIZE]) { *this = std::move(t_tuple<type>(v[0], v[1], v[2], v[3])); }
-		t_tuple<type>(const t_point<type>& p) { *this = std::move(t_tuple<type>(p.x(), p.y(), p.z(), p.w())); }
-		t_tuple<type>(const t_vector<type>& v) { *this = std::move(t_tuple<type>(v.x(), v.y(), v.z(), v.w())); }
-		t_tuple<type>(const t_tuple<type>& t) { *this = t; }
+		t_tuple4t<type>(const type* v) { *this = std::move(t_tuple4t<type>(v[0], v[1], v[2], v[3])); }
+		t_tuple4t<type>(const t_point4t<type>& p) { *this = std::move(t_tuple4t<type>(p.x(), p.y(), p.z(), p.w())); }
+		t_tuple4t<type>(const t_vector4t<type>& v) { *this = std::move(t_tuple4t<type>(v.x(), v.y(), v.z(), v.w())); }
+		t_tuple4t<type>(const t_tuple4t<type>& t) { *this = t; }
 
-		bool operator == (const t_tuple<type>& t) const { return ( equals(t)); }
-		bool operator != (const t_tuple<type>& t) const { return (!equals(t)); }
+		bool operator == (const t_tuple4t<type>& t) const { return ( equals(t)); }
+		bool operator != (const t_tuple4t<type>& t) const { return (!equals(t)); }
 
-		t_tuple<type>& operator = (const t_tuple<type>& t) {
+		t_tuple4t<type>& operator = (const t_tuple4t<type>& t) {
 			x() = t.x(); y() = t.y();
 			z() = t.z(); w() = t.w();
 			return *this;
 		}
 
-		t_tuple<type> operator + (const t_tuple<type>& t) const { return (t_tuple<type>(x() + t.x(), y() + t.y(), z() + t.z(), w() + t.w())); }
-		t_tuple<type> operator - (const t_tuple<type>& t) const { return (t_tuple<type>(x() - t.x(), y() - t.y(), z() - t.z(), w() - t.w())); }
+		t_tuple4t<type> operator + (const t_tuple4t<type>& t) const { return (t_tuple4t<type>(x() + t.x(), y() + t.y(), z() + t.z(), w() + t.w())); }
+		t_tuple4t<type> operator - (const t_tuple4t<type>& t) const { return (t_tuple4t<type>(x() - t.x(), y() - t.y(), z() - t.z(), w() - t.w())); }
 
-		t_tuple<type> operator * (const type s) const { return (t_tuple<type>(x() * s, y() * s, z() * s, w() * s)); }
-		t_tuple<type> operator / (const type s) const { return (t_tuple<type>(x() / s, y() / s, z() / s, w() / s)); }
+		t_tuple4t<type> operator * (const type s) const { return (t_tuple4t<type>(x() * s, y() * s, z() * s, w() * s)); }
+		t_tuple4t<type> operator / (const type s) const { return (t_tuple4t<type>(x() / s, y() / s, z() / s, w() / s)); }
 
 
-		uint32_t hash(const t_tuple<type>& mask = ones_tuple()) const {
+		uint32_t hash(const t_tuple4t<type>& mask = ones_tuple()) const {
 			const uint32_t hx = (*reinterpret_cast<uint32_t*>(const_cast<type*>(&m_xyzw[0]))) * mask.x();
 			const uint32_t hy = (*reinterpret_cast<uint32_t*>(const_cast<type*>(&m_xyzw[1]))) * mask.y();
 			const uint32_t hz = (*reinterpret_cast<uint32_t*>(const_cast<type*>(&m_xyzw[2]))) * mask.z();
@@ -48,19 +48,19 @@ namespace lib_math {
 			return (hx ^ hy ^ hz ^ hw);
 		}
 
-		static uint32_t hash(const t_point<type>& pnt, const t_point<type>& mask) {
-			const t_tuple<type> p( pnt);
-			const t_tuple<type> m(mask);
+		static uint32_t hash(const t_point4t<type>& pnt, const t_point4t<type>& mask) {
+			const t_tuple4t<type> p( pnt);
+			const t_tuple4t<type> m(mask);
 			return (p.hash(m));
 		}
-		static uint32_t hash(const t_vector<type>& vec, const t_vector<type>& mask) {
-			const t_tuple<type> v( vec);
-			const t_tuple<type> m(mask);
+		static uint32_t hash(const t_vector4t<type>& vec, const t_vector4t<type>& mask) {
+			const t_tuple4t<type> v( vec);
+			const t_tuple4t<type> m(mask);
 			return (v.hash(m));
 		}
 
 
-		bool equals(const t_tuple<type>& t, const t_tuple<type>& eps = eps_tuple()) const {
+		bool equals(const t_tuple4t<type>& t, const t_tuple4t<type>& eps = eps_tuple()) const {
 			unsigned int mask = 0;
 			mask += lib_math::fp_eq<type>(x(), t.x(), eps.x());
 			mask += lib_math::fp_eq<type>(y(), t.y(), eps.y());
@@ -69,14 +69,14 @@ namespace lib_math {
 			return (mask == 4);
 		}
 
-		bool is_point() const { return (w() == 1); }
-		bool is_vector() const { return (w() == 0); }
+		bool is_point() const { return (w() == type(1)); }
+		bool is_vector() const { return (w() == type(0)); }
 
-		static bool equals(const t_point<type>& pnt_a, const t_point<type>& pnt_b, const t_point<type>& eps) {
-			return (equals(t_tuple<type>(pnt_a), t_tuple<type>(pnt_b), t_tuple<type>(eps)));
+		static bool equals(const t_point4t<type>& pnt_a, const t_point4t<type>& pnt_b, const t_point4t<type>& eps) {
+			return (equals(t_tuple4t<type>(pnt_a), t_tuple4t<type>(pnt_b), t_tuple4t<type>(eps)));
 		}
-		static bool equals(const t_vector<type>& vec_a, const t_vector<type>& vec_b, const t_vector<type>& eps) {
-			return (equals(t_tuple<type>(vec_a), t_tuple<type>(vec_b), t_tuple<type>(eps)));
+		static bool equals(const t_vector4t<type>& vec_a, const t_vector4t<type>& vec_b, const t_vector4t<type>& eps) {
+			return (equals(t_tuple4t<type>(vec_a), t_tuple4t<type>(vec_b), t_tuple4t<type>(eps)));
 		}
 
 
@@ -110,25 +110,23 @@ namespace lib_math {
 		type& z()       { return m_xyzw[2]; }
 		type& w()       { return m_xyzw[3]; }
 
-		static const t_tuple<type>& zero_tuple();
-		static const t_tuple<type>& ones_tuple();
-		static const t_tuple<type>&  eps_tuple();
-
-		static type eps_scalar() { return ((eps_tuple()).x()); }
+		static const t_tuple4t<type>& zero_tuple();
+		static const t_tuple4t<type>& ones_tuple();
+		static const t_tuple4t<type>&  eps_tuple();
 
 	private:
-		type m_xyzw[LIBGEOM_TUPLE_SIZE];
+		type m_xyzw[4];
 	};
 
 
-	typedef t_tuple< int32_t> t_tuple4i;
-	typedef t_tuple<uint32_t> t_tuple4ui;
+	typedef t_tuple4t< int32_t> t_tuple4i;
+	typedef t_tuple4t<uint32_t> t_tuple4ui;
 
-	typedef t_tuple< int64_t> t_tuple4li;
-	typedef t_tuple<uint64_t> t_tuple4lui;
+	typedef t_tuple4t< int64_t> t_tuple4li;
+	typedef t_tuple4t<uint64_t> t_tuple4lui;
 
-	typedef t_tuple< float> t_tuple4f;
-	typedef t_tuple<double> t_tuple4d;
+	typedef t_tuple4t< float> t_tuple4f;
+	typedef t_tuple4t<double> t_tuple4d;
 
 	// aliases for less typing
 	typedef t_tuple4i  t_tup4i;

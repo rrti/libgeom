@@ -1,11 +1,6 @@
 #ifndef LIBGEOM_DEFS_HDR
 #define LIBGEOM_DEFS_HDR
 
-#define LIBGEOM_POINT_SIZE  (4)
-#define LIBGEOM_VECTOR_SIZE (4)
-#define LIBGEOM_TUPLE_SIZE  (4)
-#define LIBGEOM_MATRIX_SIZE (4 * 4)
-
 #define M_FEPS 1e-4f
 #define M_DEPS 1e-4
 #define M_FINF std::numeric_limits< float>::infinity()

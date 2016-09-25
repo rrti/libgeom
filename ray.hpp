@@ -6,7 +6,7 @@
 #include "./vector.hpp"
 
 namespace lib_math {
-	template<typename type> struct t_matrix;
+	template<typename type> struct t_matrix44t;
 
 	struct t_plane;
 	struct t_raw_triangle;
@@ -16,10 +16,10 @@ namespace lib_math {
 	struct t_ray {
 	typedef float m_coor_type;
 
-	typedef t_tuple<m_coor_type> m_tuple_type;
-	typedef t_point<m_coor_type> m_point_type;
-	typedef t_vector<m_coor_type> m_vector_type;
-	typedef t_matrix<m_coor_type> m_matrix_type;
+	typedef t_tuple4t<m_coor_type> m_tuple_type;
+	typedef t_point4t<m_coor_type> m_point_type;
+	typedef t_vector4t<m_coor_type> m_vector_type;
+	typedef t_matrix44t<m_coor_type> m_matrix_type;
 
 	public:
 		t_ray();
@@ -50,7 +50,7 @@ namespace lib_math {
 		m_coor_type plane_intersect_distance(
 			const m_vector_type& plane_normal,
 			const m_coor_type plane_origin_distance,
-			const m_coor_type eps = m_tuple_type::eps_scalar()
+			const m_coor_type eps = M_FEPS
 		) const;
 
 

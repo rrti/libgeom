@@ -7,7 +7,7 @@
 #include "./plane.hpp"
 
 namespace lib_math {
-	template<typename type> struct t_matrix;
+	template<typename type> struct t_matrix44t;
 
 	struct t_plane;
 	struct t_ray;
@@ -16,10 +16,10 @@ namespace lib_math {
 	struct t_raw_triangle {
 	typedef float m_coor_type;
 
-	typedef t_tuple<m_coor_type> m_tuple_type;
-	typedef t_point<m_coor_type> m_point_type;
-	typedef t_vector<m_coor_type> m_vector_type;
-	typedef t_matrix<m_coor_type> m_matrix_type;
+	typedef t_tuple4t<m_coor_type> m_tuple_type;
+	typedef t_point4t<m_coor_type> m_point_type;
+	typedef t_vector4t<m_coor_type> m_vector_type;
+	typedef t_matrix44t<m_coor_type> m_matrix_type;
 
 	public:
 		t_raw_triangle();
@@ -61,11 +61,11 @@ namespace lib_math {
 		m_coor_type origin_distance() const;
 
 
-		bool point_in_triangle(const m_point_type& point, const m_coor_type eps = m_tuple_type::eps_scalar()) const;
-		bool point_in_triangle_bc(const m_point_type& point, const m_coor_type eps = m_tuple_type::eps_scalar()) const;
+		bool point_in_triangle(const m_point_type& point, const m_coor_type eps = M_FEPS) const;
+		bool point_in_triangle_bc(const m_point_type& point, const m_coor_type eps = M_FEPS) const;
 
 		// test if <this> intersects <plane>
-		bool intersect_plane(const t_plane& plane, const m_coor_type eps = m_tuple_type::eps_scalar()) const;
+		bool intersect_plane(const t_plane& plane, const m_coor_type eps = M_FEPS) const;
 
 		// test if <this> intersects <triangle>; both
 		// triangles must be in same coordinate-space
@@ -76,14 +76,14 @@ namespace lib_math {
 		//
 		// note that is not a symmetric test!
 		//
-		unsigned int intersect_triangle_cop(const t_raw_triangle& triangle, m_point_type* points, const m_coor_type eps = m_tuple_type::eps_scalar()) const;
-		unsigned int intersect_triangle(const t_raw_triangle& triangle, m_point_type* points, const m_coor_type eps = m_tuple_type::eps_scalar()) const;
+		unsigned int intersect_triangle_cop(const t_raw_triangle& triangle, m_point_type* points, const m_coor_type eps = M_FEPS) const;
+		unsigned int intersect_triangle(const t_raw_triangle& triangle, m_point_type* points, const m_coor_type eps = M_FEPS) const;
 
 		unsigned int intersect_triangle(
 			const t_idx_triangle& idx_triangle,
 			const m_point_type* idx_verts,
 			      m_point_type* points,
-			const m_coor_type eps = m_tuple_type::eps_scalar()
+			const m_coor_type eps = M_FEPS
 		) const;
 
 		// maximum number of intersection points this triangle can have with another

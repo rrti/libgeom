@@ -15,8 +15,8 @@ namespace lib_math {
 			a() = _a; b() = _b;
 			c() = _c; d() = _d;
 		}
-		t_quaternion(type a, const t_vector<type>&  bcd) { *this = std::move(t_quaternion<type>(a       ,  bcd.x(),  bcd.y(),  bcd.z())); }
-		t_quaternion(        const t_vector<type>& abcd) { *this = std::move(t_quaternion<type>(abcd.x(), abcd.y(), abcd.z(), abcd.w())); }
+		t_quaternion(type a, const t_vector4t<type>&  bcd) { *this = std::move(t_quaternion<type>(a       ,  bcd.x(),  bcd.y(),  bcd.z())); }
+		t_quaternion(        const t_vector4t<type>& abcd) { *this = std::move(t_quaternion<type>(abcd.x(), abcd.y(), abcd.z(), abcd.w())); }
 
 
 		#if 0
@@ -30,9 +30,9 @@ namespace lib_math {
 		// Hamilton product = (a1 + b1*i + c1*j + d1*k) x (a2 + b2*i + c2*j + d2*k)
 		#if 0
 		t_quaternion<type> operator * (const t_quaternion& q) const {
-			const t_vector<type>&  bcd =   bcd_vector();
-			const t_vector<type>& qbcd = q.bcd_vector();
-			const t_vector<type>  rbcd = (qbcd * a()) + (bcd * q.a()) + bcd.outer(qbcd);
+			const t_vector4t<type>&  bcd =   bcd_vector();
+			const t_vector4t<type>& qbcd = q.bcd_vector();
+			const t_vector4t<type>  rbcd = (qbcd * a()) + (bcd * q.a()) + bcd.outer(qbcd);
 			return (t_quaternion(a() * q.a() - bcd.inner(qbcd), rbcd));
 		}
 		#else
@@ -65,14 +65,14 @@ namespace lib_math {
 		// the product q*v*-q can also be written as v + cross(2*r, (cross(r,v) + v*w))
 		// other methods are "matrix * vector" or "(axis-angle to matrix) * vector"
 		#if 0
-		t_quaternion<type> rotate_vector(const t_vector<type>& v) const {
-			const t_vector<type>& bcd = bcd_vector();
-			const t_vector<type>  lhs = bcd * type(2);
-			const t_vector<type>  rhs = bcd.outer(v) + v * a();
+		t_quaternion<type> rotate_vector(const t_vector4t<type>& v) const {
+			const t_vector4t<type>& bcd = bcd_vector();
+			const t_vector4t<type>  lhs = bcd * type(2);
+			const t_vector4t<type>  rhs = bcd.outer(v) + v * a();
 			return (v + lhs.outer(rhs));
 		}
 		#else
-		t_quaternion<type> rotate_vector(const t_vector<type>& v) const {
+		t_quaternion<type> rotate_vector(const t_vector4t<type>& v) const {
 			return (((*this) * t_quaternion(type(0), v)) * -(*this));
 		}
 		#endif
@@ -89,25 +89,25 @@ namespace lib_math {
 		t_quaternion<type>& anormalize_ref() { *this = anormalize(); }
 		t_quaternion<type>&  normalize_ref() { *this =  normalize(); }
 		t_quaternion<type>& reciprocal_ref() { *this = reciprocal(); }
-		t_quaternion<type>& axis_angle_ref(const t_vector<type>& axis_angle) { *this = axis_angle_quat(axis_angle); }
+		t_quaternion<type>& axis_angle_ref(const t_vector4t<type>& axis_angle) { *this = axis_angle_quat(axis_angle); }
 
 		t_quaternion<type> bcd_multiply(const t_quaternion<type>& q) const {
-			const t_vector<type>&  bcd =   bcd_vector();
-			const t_vector<type>& qbcd = q.bcd_vector();
+			const t_vector4t<type>&  bcd =   bcd_vector();
+			const t_vector4t<type>& qbcd = q.bcd_vector();
 			return (t_quaternion(type(0), bcd.outer(qbcd) - bcd.inner(qbcd)));
 		}
 
 
-		static t_quaternion<type> rot_matrix_quat_cm(const t_matrix<type>& rot_matrix) {
+		static t_quaternion<type> rot_matrix_quat_cm(const t_matrix44t<type>& rot_matrix) {
 			return (rot_matrix_quat_rm(rot_matrix.transpose()));
 		}
 		// convert a (assumed row-major) rotation-matrix to a unit-quaternion
-		static t_quaternion<type> rot_matrix_quat_rm(const t_matrix<type>& rot_matrix) {
+		static t_quaternion<type> rot_matrix_quat_rm(const t_matrix44t<type>& rot_matrix) {
 			t_quaternion<type> q;
 
-			const t_vector<type>& xv = rot_matrix.get_x_vector();
-			const t_vector<type>& yv = rot_matrix.get_y_vector();
-			const t_vector<type>& zv = rot_matrix.get_z_vector();
+			const t_vector4t<type>& xv = rot_matrix.get_x_vector();
+			const t_vector4t<type>& yv = rot_matrix.get_y_vector();
+			const t_vector4t<type>& zv = rot_matrix.get_z_vector();
 
 			// we can write the conversion as
 			//   ca = sqrt(tr)
@@ -138,7 +138,7 @@ namespace lib_math {
 		// when rotating a vector we multiply it both by this quaternion and
 		// its conjugate, rotating into and then out of the fourth dimension
 		// (with each multiplication covering half the total angle)
-		static t_quaternion<type> axis_angle_quat(const t_vector<type>& axis_angle) {
+		static t_quaternion<type> axis_angle_quat(const t_vector4t<type>& axis_angle) {
 			t_quaternion<type> q;
 
 			// exp(theta*0.5 * (dot(axis, {i,j,k}))) = cos(theta*0.5) + dot(axis, {i,j,k}) * sin(theta*0.5)
@@ -206,8 +206,8 @@ namespace lib_math {
 
 
 		// convert a unit-length quaternion to an (xyz=axis, w=angle) vector
-		t_vector<type> to_axis_angle_vector() const {
-			t_vector<type> v;
+		t_vector4t<type> to_axis_angle_vector() const {
+			t_vector4t<type> v;
 
 			const type angle = calc_angle();
 			const type scale = type(1) / std::sin(angle * type(0.5));
@@ -220,8 +220,8 @@ namespace lib_math {
 		}
 
 		// convert a unit-quaternion to a (column-major) rotation-matrix
-		t_matrix<type> to_rotation_matrix() const {
-			t_matrix<type> r;
+		t_matrix44t<type> to_rotation_matrix() const {
+			t_matrix44t<type> r;
 
 			constexpr type t1 = 1;
 			constexpr type t2 = 2;
@@ -261,8 +261,8 @@ namespace lib_math {
 			return r;
 		}
 
-		t_vector<type> abcd_vector() const { return (t_vector<type>(a(), b(), c(), d())); }
-		t_vector<type>  bcd_vector() const { return (t_vector<type>(b(), c(), d())); }
+		t_vector4t<type> abcd_vector() const { return (t_vector4t<type>(a(), b(), c(), d())); }
+		t_vector4t<type>  bcd_vector() const { return (t_vector4t<type>(b(), c(), d())); }
 
 		// same as the Euclidean norm if considering quaternions as
 		// a vector space; note that norm(q * s) = norm(q) * abs(s)
@@ -293,9 +293,9 @@ namespace lib_math {
 		// real quaternions have a!=0 and         only     zero imaginary components
 		// bcd-part is imaginary but can be treated as an ordinary vector in 3D space
 		#if 0
-		bool is_pure() const { return (a() == type(0) && bcd_vector() != t_vector<type>::zero_vector()); }
-		bool is_real() const { return (a() != type(0) && bcd_vector() == t_vector<type>::zero_vector()); }
-		bool is_unit() const { return (a() == type(1) && bcd_vector() == t_vector<type>::zero_vector()); }
+		bool is_pure() const { return (a() == type(0) && bcd_vector() != t_vector4t<type>::zero_vector()); }
+		bool is_real() const { return (a() != type(0) && bcd_vector() == t_vector4t<type>::zero_vector()); }
+		bool is_unit() const { return (a() == type(1) && bcd_vector() == t_vector4t<type>::zero_vector()); }
 		#else
 		bool is_pure() const { return (a() == type(0) && (b() != type(0) || c() != type(0) || c() != type(0))); }
 		bool is_real() const { return (a() != type(0) && (b() == type(0) && c() == type(0) && c() == type(0))); }

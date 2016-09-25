@@ -13,9 +13,9 @@
 namespace lib_math {
 	struct t_idx_triangle {
 	typedef float m_coor_type;
-	typedef t_point<m_coor_type> m_point_type;
-	typedef t_vector<m_coor_type> m_vector_type;
-	typedef t_tuple<unsigned int> m_tuple_type;
+	typedef t_point4t<m_coor_type> m_point_type;
+	typedef t_vector4t<m_coor_type> m_vector_type;
+	typedef t_tuple4t<unsigned int> m_tuple_type;
 	public:
 		t_idx_triangle(const std::vector<m_point_type>& vertices, const m_tuple_type& indices) {
 			assert(indices.x() < vertices.size());
@@ -60,9 +60,9 @@ namespace lib_math {
 			m_point_type mid_point = calc_midpoint(vertices, indices);
 			m_vector_type mid_vector = vertices[indices.x()] - mid_point;
 
-			if ((vertices[indices.y()] - mid_point).sq_magnit() > mid_vector.sq_magnit())
+			if ((vertices[indices.y()] - mid_point).sq_len() > mid_vector.sq_len())
 				mid_vector = vertices[indices.y()] - mid_point;
-			if ((vertices[indices.z()] - mid_point).sq_magnit() > mid_vector.sq_magnit())
+			if ((vertices[indices.z()] - mid_point).sq_len() > mid_vector.sq_len())
 				mid_vector = vertices[indices.z()] - mid_point;
 
 			return (mid_vector.magnit());

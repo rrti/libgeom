@@ -6,12 +6,12 @@
 
 namespace lib_math {
 	#if 0
-	template<> t_matrix44f t_matrix44f::invert_general(const float eps) const {
+	template<> t_matrix44f t_matrix44f::invert_projective(const float eps) const {
 		t_matrix44f mat;
 		t_matrix44f& cofac = mat;
 
-		for (unsigned int i = 0; i < LIBGEOM_MATRIX_SIZE; i++) {
-			for (unsigned int j = 0; j < LIBGEOM_MATRIX_SIZE; j++) {
+		for (unsigned int i = 0; i < MATRIX_SIZE; i++) {
+			for (unsigned int j = 0; j < MATRIX_SIZE; j++) {
 				cofac.m_xyzt[i][j] = CalculateCofactor(m_xyzt, i, j);
 			}
 		}
@@ -119,10 +119,10 @@ namespace lib_math {
 
 	template<> void t_matrix44f::print(const char* tabs) const {
 		printf("\n%s  X       Y       Z       T\n%s", tabs, tabs);
-		for (unsigned int n = 0; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 1st row
-		for (unsigned int n = 1; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 2nd row
-		for (unsigned int n = 2; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 3rd row
-		for (unsigned int n = 3; n < MATH_MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 4th row
+		for (unsigned int n = 0; n < MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 1st row
+		for (unsigned int n = 1; n < MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 2nd row
+		for (unsigned int n = 2; n < MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 3rd row
+		for (unsigned int n = 3; n < MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 4th row
 		printf("\n");
 	}
 };

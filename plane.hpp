@@ -12,9 +12,9 @@ namespace lib_math {
 	struct t_plane {
 	typedef float m_coor_type;
 
-	typedef t_tuple<m_coor_type> m_tuple_type;
-	typedef t_point<m_coor_type> m_point_type;
-	typedef t_vector<m_coor_type> m_vector_type;
+	typedef t_tuple4t<m_coor_type> m_tuple_type;
+	typedef t_point4t<m_coor_type> m_point_type;
+	typedef t_vector4t<m_coor_type> m_vector_type;
 
 	public:
 		t_plane(const m_vector_type& n = m_vector_type::y_vector()) {
@@ -37,7 +37,7 @@ namespace lib_math {
 			const m_vector_type& vel,
 			const m_coor_type tmin = m_coor_type(0),
 			const m_coor_type tmax = m_coor_type(1),
-			const m_coor_type eps = m_tuple_type::eps_scalar()
+			const m_coor_type eps = M_FEPS
 		) const;
 
 
@@ -52,13 +52,13 @@ namespace lib_math {
 		unsigned int clip_triangle(
 			const t_raw_triangle& triangle,
 			      t_raw_triangle* clipped_tris,
-			const m_coor_type eps = m_tuple_type::eps_scalar()
+			const m_coor_type eps = M_FEPS
 		) const;
 		unsigned int clip_triangle(
 			const t_idx_triangle& idx_triangle,
 			const m_point_type* idx_vertices,
 			      t_raw_triangle* clipped_tris,
-			const m_coor_type eps = m_tuple_type::eps_scalar()
+			const m_coor_type eps = M_FEPS
 		) const;
 
 	private:

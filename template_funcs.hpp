@@ -10,8 +10,8 @@ namespace lib_math {
 	static const size_t POWERS_OF_TWO[] = {1,  2,   4,    8,    16,     32,      64,      128};
 	static const size_t POWERS_OF_TEN[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
 
-	template<typename type> struct t_matrix;
-	template<typename type> struct t_vector;
+	template<typename type> struct t_matrix44t;
+	template<typename type> struct t_vector4t;
 
 	// note: these three are already in gcc's cmath
 	template<typename type> type copysign_builtin(type v, type w) { return (__builtin_copysignf(v, w)); }
@@ -54,13 +54,13 @@ namespace lib_math {
 	template<typename type> type absm(type v) { return (std::max(v, -v)); }
 
 
-	template<typename type> t_vector<type> nlerp(const t_vector<type>& v0, const t_vector<type>& v1, type wgt) {
+	template<typename type> t_vector4t<type> nlerp(const t_vector4t<type>& v0, const t_vector4t<type>& v1, type wgt) {
 		assert(v0 != -v1);
-		const t_vector<type>& vi = lib_math::lerp(v0, v1, wgt);
-		const t_vector<type>  vn = vi.normalize();
+		const t_vector4t<type>& vi = lib_math::lerp(v0, v1, wgt);
+		const t_vector4t<type>  vn = vi.normalize();
 		return vn;
 	}
-	template<typename type> t_vector<type> slerp(const t_vector<type>& v0, const t_vector<type>& v1, type wgt, type eps) {
+	template<typename type> t_vector4t<type> slerp(const t_vector4t<type>& v0, const t_vector4t<type>& v1, type wgt, type eps) {
 		// calculate the angle subtended by the arc spanned by unit-vectors
 		// v0 and v1 (angle=acos(dot(v0, v1))); the interpolated vector (vi)
 		// is a linear combination of the orthonormal basis (v0, v2) where
@@ -75,31 +75,31 @@ namespace lib_math {
 			return (lib_math::lerp(v0, v1, wgt));
 
 		// note: explicit normalization is more accurate
-		// const t_vector<type> v2 = (v1 - v0 * cosa) * isina;
-		// const t_vector<type> vi = v0 * std::cos(acosa * wgt) + v2 * std::sin(acosa * wgt);
+		// const t_vector4t<type> v2 = (v1 - v0 * cosa) * isina;
+		// const t_vector4t<type> vi = v0 * std::cos(acosa * wgt) + v2 * std::sin(acosa * wgt);
 		// return vi;
 		// standard formulation
-		const t_vector<type> w0 = v0 * (std::sin((type(1) - wgt) * acosa) * isina);
-		const t_vector<type> w1 = v1 * (std::sin((type(0) + wgt) * acosa) * isina);
+		const t_vector4t<type> w0 = v0 * (std::sin((type(1) - wgt) * acosa) * isina);
+		const t_vector4t<type> w1 = v1 * (std::sin((type(0) + wgt) * acosa) * isina);
 		return (w0 + w1);
 	}
 
 	#if 0
-	template<typename type> t_vector<type> slerp_aux(
-		const t_vector<type>& v,
-		const t_vector<type>& w,
+	template<typename type> t_vector4t<type> slerp_aux(
+		const t_vector4t<type>& v,
+		const t_vector4t<type>& w,
 		const type wgt,
 		const type eps
 	) {
 		const type cos_angle = lib_math::clamp(v.inner(w), type(-1), type(1));
-		const type ccw_slerp = lib_math::sign(v.inner(w.outer(t_vector<type>::y_vector())));
+		const type ccw_slerp = lib_math::sign(v.inner(w.outer(t_vector4t<type>::y_vector())));
 		const type angle_max = std::acos(cos_angle); // radians
 		const type angle_int = angle_max * wgt * ccw_slerp;
 
 		// if dot(v, w) is  1, no interpolation is required
 		// if dot(v, w) is -1, no interpolation is possible
 		if (cos_angle <= (type(-1) + eps))
-			return t_vector<type>::zero_vector();
+			return t_vector4t<type>::zero_vector();
 		if (cos_angle >= (type(1) - eps))
 			return v;
 
@@ -107,7 +107,7 @@ namespace lib_math {
 		return (v.rotate_y_ext(angle_int));
 	}
 
-	template<typename type> t_vector<type> slerp(const t_vector<type>& vz, const t_vector<type>& vw, type wgt, type eps) {
+	template<typename type> t_vector4t<type> slerp(const t_vector4t<type>& vz, const t_vector4t<type>& vw, type wgt, type eps) {
 		// Nth-order polynomial vector interpolation over angles
 		//
 		// two (non-colinear) vectors v and w uniquely span a plane with
@@ -116,12 +116,12 @@ namespace lib_math {
 		// an axis-system around N and making this align with the world
 		// axis-system by transposing it, s.t. rotating v around N to w
 		// equals rotating v' around world-y to w'
-		const t_vector<type> vy = (vz.outer(vw)).normalize();
-		const t_vector<type> vx = (vz.outer(vy)).normalize();
+		const t_vector4t<type> vy = (vz.outer(vw)).normalize();
+		const t_vector4t<type> vx = (vz.outer(vy)).normalize();
 
 		// compose axis-system; vy is plane normal
-		const t_matrix<type> m1 = t_matrix<type>(vx, vy, vz);
-		const t_matrix<type> m2 = m1.transpose_rotation();
+		const t_matrix44t<type> m1 = t_matrix44t<type>(vx, vy, vz);
+		const t_matrix44t<type> m2 = m1.transpose_rotation();
 
 		// inv-transform source and target to axis-aligned vectors
 		// interpolate in the local space, transform back to world
@@ -130,12 +130,12 @@ namespace lib_math {
 	#endif
 
 
-	template<typename type> t_vector<type> angle_to_vector_xy(type angle) { return (t_vector<type>(std::cos(angle), std::sin(angle),         type(0))); }
-	template<typename type> t_vector<type> angle_to_vector_xz(type angle) { return (t_vector<type>(std::cos(angle),         type(0), std::sin(angle))); }
-	template<typename type> t_vector<type> angle_to_vector_yz(type angle) { return (t_vector<type>(        type(0), std::cos(angle), std::sin(angle))); }
-	template<typename type> type vector_to_angle_xy(const t_vector<type>& vector) { return (std::atan2(vector.y(), vector.x())); }
-	template<typename type> type vector_to_angle_xz(const t_vector<type>& vector) { return (std::atan2(vector.z(), vector.x())); }
-	template<typename type> type vector_to_angle_yz(const t_vector<type>& vector) { return (std::atan2(vector.z(), vector.y())); }
+	template<typename type> t_vector4t<type> angle_to_vector_xy(type angle) { return (t_vector4t<type>(std::cos(angle), std::sin(angle),         type(0))); }
+	template<typename type> t_vector4t<type> angle_to_vector_xz(type angle) { return (t_vector4t<type>(std::cos(angle),         type(0), std::sin(angle))); }
+	template<typename type> t_vector4t<type> angle_to_vector_yz(type angle) { return (t_vector4t<type>(        type(0), std::cos(angle), std::sin(angle))); }
+	template<typename type> type vector_to_angle_xy(const t_vector4t<type>& vector) { return (std::atan2(vector.y(), vector.x())); }
+	template<typename type> type vector_to_angle_xz(const t_vector4t<type>& vector) { return (std::atan2(vector.z(), vector.x())); }
+	template<typename type> type vector_to_angle_yz(const t_vector4t<type>& vector) { return (std::atan2(vector.z(), vector.y())); }
 
 	template<typename type> constexpr type deg_to_rad() { return (M_PI / type(180)); }
 	template<typename type> constexpr type rad_to_deg() { return (type(180) / M_PI); }
@@ -148,9 +148,9 @@ namespace lib_math {
 		//   comparing signs is only valid for angles in [-PI, PI], not [0, 2PI]
 		if (sign(v0) == sign(v1))
 			return (lerp(v0, v1, wgt));
-		const t_vector<type>& vv0 = angle_to_vector_xz(v0);
-		const t_vector<type>& vv1 = angle_to_vector_xz(v1);
-		const t_vector<type>& vvi = lib_math::slerp(vv0, vv1, wgt, eps);
+		const t_vector4t<type>& vv0 = angle_to_vector_xz(v0);
+		const t_vector4t<type>& vv1 = angle_to_vector_xz(v1);
+		const t_vector4t<type>& vvi = lib_math::slerp(vv0, vv1, wgt, eps);
 		return (vector_to_angle_xz(vvi));
 	}
 
