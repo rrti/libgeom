@@ -98,8 +98,8 @@ namespace lib_math {
 		angles[0][R_AXIS_IDX] = std::atan2((m_xyzt[0 * 4 + 1] / cos_yaw[0]), (m_xyzt[0 * 4 + 0] / cos_yaw[0]));
 		angles[1][R_AXIS_IDX] = std::atan2((m_xyzt[0 * 4 + 1] / cos_yaw[1]), (m_xyzt[0 * 4 + 0] / cos_yaw[1]));
 
-		ang_sum[0] = (m_vector_type::ones_vector()).inner(angles[0].abs()); // |p0|+|y0|+|r0|
-		ang_sum[1] = (m_vector_type::ones_vector()).inner(angles[1].abs()); // |p1|+|y1|+|r1|
+		ang_sum[0] = (m_vec_type::ones_vector()).inner(angles[0].abs()); // |p0|+|y0|+|r0|
+		ang_sum[1] = (m_vec_type::ones_vector()).inner(angles[1].abs()); // |p1|+|y1|+|r1|
 
 		// two solutions exist; choose the "shortest" rotation
 		return angles[ang_sum[0] > ang_sum[1]];

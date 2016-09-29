@@ -105,9 +105,9 @@ namespace lib_math {
 		static t_quaternion<type> rot_matrix_quat_rm(const t_matrix44t<type>& rot_matrix) {
 			t_quaternion<type> q;
 
-			const t_vector4t<type>& xv = rot_matrix.get_x_vector();
-			const t_vector4t<type>& yv = rot_matrix.get_y_vector();
-			const t_vector4t<type>& zv = rot_matrix.get_z_vector();
+			const t_vector4t<type>& xv = rot_matrix.get_x_vec();
+			const t_vector4t<type>& yv = rot_matrix.get_y_vec();
+			const t_vector4t<type>& zv = rot_matrix.get_z_vec();
 
 			// we can write the conversion as
 			//   ca = sqrt(tr)
@@ -248,15 +248,15 @@ namespace lib_math {
 			#endif
 
 			#if 1
-			r.set_x_vector({aa + bb - cc - dd, bc + ad, bd - ac});
-			r.set_y_vector({bc - ad, aa - bb + cc - dd, cd + ab});
-			r.set_z_vector({bd + ac, cd - ab, aa - bb - cc + dd});
+			r.set_x_vec({aa + bb - cc - dd, bc + ad, bd - ac});
+			r.set_y_vec({bc - ad, aa - bb + cc - dd, cd + ab});
+			r.set_z_vec({bd + ac, cd - ab, aa - bb - cc + dd});
 			#else
 			// alternative (equivalent) formulation; non-zero quaternions
 			// behave like homogeneous coordinates for rotation matrices
-			r.set_x_vector({t1 - t2 * (cc + dd),      t2 * (bc + ad),      t2 * (bd - ac)});
-			r.set_y_vector({     t2 * (bc - ad), t1 - t2 * (bb + dd),      t2 * (cd + ab)});
-			r.set_z_vector({     t2 * (bd + ac),      t2 * (cd - ab), t1 - t2 * (bb + cc)});
+			r.set_x_vec({t1 - t2 * (cc + dd),      t2 * (bc + ad),      t2 * (bd - ac)});
+			r.set_y_vec({     t2 * (bc - ad), t1 - t2 * (bb + dd),      t2 * (cd + ab)});
+			r.set_z_vec({     t2 * (bd + ac),      t2 * (cd - ab), t1 - t2 * (bb + cc)});
 			#endif
 			return r;
 		}

@@ -158,7 +158,7 @@ namespace lib_math {
 			return ((*this) = std::move(t_vector4t<type>(rx, ry, z())));
 		}
 
-		t_vector4t<type>& rotate_ypr(const t_vector4t<type>& ypr) {
+		t_vector4t<type>& rotate_ypr_ref(const t_vector4t<type>& ypr) {
 			x() = std::cos(ypr.x()) * std::cos(ypr.y());
 			y() = std::sin(ypr.y());
 			z() = std::sin(ypr.x()) * std::cos(ypr.y());
