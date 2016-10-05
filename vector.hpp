@@ -245,6 +245,7 @@ namespace lib_math {
 		t_vector4t<type> abs(                         ) const { return (t_vector4t<type>(std::abs(      x()),        std::abs(     y()),         std::abs(      z()),        w())); }
 		t_vector4t<type> max(const t_vector4t<type>& v) const { return (t_vector4t<type>(std::max<type>(x(), v.x()), std::max<type>(y(), v.y()), std::max<type>(z(), v.z()), w())); }
 		t_vector4t<type> min(const t_vector4t<type>& v) const { return (t_vector4t<type>(std::min<type>(x(), v.x()), std::min<type>(y(), v.y()), std::min<type>(z(), v.z()), w())); }
+		t_vector4t<type> pow(const t_vector4t<type>& v) const { return (t_vector4t<type>(std::pow<type>(x(), v.x()), std::pow<type>(y(), v.y()), std::pow<type>(z(), v.z()), w())); }
 		t_vector4t<type> mod(const t_vector4t<type>& v) const { return (t_vector4t<type>(std::fmod     (x(), v.x()), std::fmod     (y(), v.y()), std::fmod     (z(), v.z()), w())); }
 		// t_vector4t<type> mod(const t_vector4t<type>& v) const { return (t_vector4t<type>(std::mod<type>(x(), v.x()), std::mod<type>(y(), v.y()), std::mod<type>(z(), v.z()), w())); }
 
