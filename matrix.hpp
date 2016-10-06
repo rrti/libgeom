@@ -172,8 +172,10 @@ namespace lib_math {
 		type  operator [] (unsigned int idx) const { return m_xyzt[idx]; }
 		type& operator [] (unsigned int idx)       { return m_xyzt[idx]; }
 
-		const type* xyzt() const { return &m_xyzt[0]; }
-		      type* xyzt()       { return &m_xyzt[0]; }
+		const type* xyzt(unsigned int idx = 0) const { return &m_xyzt[idx]; }
+		const type* data(unsigned int idx = 0) const { return &m_xyzt[idx]; }
+		      type* xyzt(unsigned int idx = 0)       { return &m_xyzt[idx]; }
+		      type* data(unsigned int idx = 0)       { return &m_xyzt[idx]; }
 
 
 		type trace() const { return (m_xyzt[0] + m_xyzt[5] + m_xyzt[10] + m_xyzt[15]); }

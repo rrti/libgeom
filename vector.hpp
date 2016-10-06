@@ -307,8 +307,10 @@ namespace lib_math {
 		void sassert() const { (t_tuple4t<type>(*this)).sassert(); }
 
 
-		const type* xyzw() const { return &m_xyzw[0]; }
-		      type* xyzw()       { return &m_xyzw[0]; }
+		const type* xyzw(unsigned int idx = 0) const { return &m_xyzw[idx]; }
+		const type* data(unsigned int idx = 0) const { return &m_xyzw[idx]; }
+		      type* xyzw(unsigned int idx = 0)       { return &m_xyzw[idx]; }
+		      type* data(unsigned int idx = 0)       { return &m_xyzw[idx]; }
 
 		type  operator [] (uint32_t n) const { return m_xyzw[n]; }
 		type& operator [] (uint32_t n)       { return m_xyzw[n]; }

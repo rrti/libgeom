@@ -88,8 +88,10 @@ namespace lib_math {
 			assert(!std::isnan(w()) && !std::isinf(w()));
 		}
 
-		const type* xyzw() const { return &m_xyzw[0]; }
-		      type* xyzw()       { return &m_xyzw[0]; }
+		const type* xyzw(unsigned int idx = 0) const { return &m_xyzw[idx]; }
+		const type* data(unsigned int idx = 0) const { return &m_xyzw[idx]; }
+		      type* xyzw(unsigned int idx = 0)       { return &m_xyzw[idx]; }
+		      type* data(unsigned int idx = 0)       { return &m_xyzw[idx]; }
 
 		// no need to make functors from tuples
 		// operator const type* () const { return xyzw(); }
