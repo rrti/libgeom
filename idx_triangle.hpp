@@ -84,6 +84,7 @@ namespace lib_math {
 	};
 
 	typedef t_idx_triangle t_idx_tri;
+	typedef t_idx_triangle t_itri;
 };
 
 #endif

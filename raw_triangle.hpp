@@ -104,6 +104,7 @@ namespace lib_math {
 	};
 
 	typedef t_raw_triangle t_raw_tri;
+	typedef t_raw_triangle t_rtri;
 };
 
 #endif
