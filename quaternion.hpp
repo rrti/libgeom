@@ -123,15 +123,18 @@ namespace lib_math {
 			//
 			// const type ca = std::sqrt(type(1) + (xv.x() + yv.y() + zv.z()));
 			// const type sa = type(0.5) / ca;
+			//
+			// note: a 180-degree rotation around (e.g.) the y-axis can cause tr=0
+			// if this happens the quaternion also has to be explicitly normalized
 			const type tr = type(1) + (xv.x() + yv.y() + zv.z());
-			const type ca = lib_math::inv_sqrt_sse(tr);
+			const type ca = lib_math::inv_sqrt_sse(std::max(type(1e-4), tr));
 			const type sa = ca * type(0.5);
 
 			q.a() = sa * tr;
 			q.b() = sa * (zv.y() - yv.z());
 			q.c() = sa * (xv.z() - zv.x());
 			q.d() = sa * (yv.x() - xv.y());
-			return q;
+			return (q.normalize());
 		}
 
 		// encode a rotation of <angle> radians around the unit-vector <axis>
