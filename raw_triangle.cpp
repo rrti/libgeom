@@ -20,14 +20,14 @@ namespace lib_math {
 		// if looking at triangle from the side in which
 		// vertices are ordered CCW, normal points along
 		// viewing direction (away from eye)
-		// *this = t_raw_triangle(vert_a, vert_b, vert_c, ((vert_c - vert_a).normalize()).outer_product((vert_b - vert_a).normalize()).normalize());
-		*this = t_raw_triangle(vert_a, vert_b, vert_c, ((vert_c - vert_a).outer_product(vert_b - vert_a)).normalize());
+		// *this = t_raw_triangle(vert_a, vert_b, vert_c, ((vert_c - vert_a).normalize()).outer((vert_b - vert_a).normalize()).normalize());
+		*this = t_raw_triangle(vert_a, vert_b, vert_c, ((vert_c - vert_a).outer(vert_b - vert_a)).normalize());
 	}
 	t_raw_triangle::t_raw_triangle(const m_point_type& vert_a, const m_point_type& vert_b, const m_point_type& vert_c, const m_vector_type& n) {
 		m_verts[0] = vert_a;
 		m_verts[1] = vert_b;
 		m_verts[2] = vert_c;
-		m_normal   = n * m_vector_type::xyz_axis_vector();
+		m_normal   = n * m_vector_type::xyz_vector();
 
 		assert(m_normal.w() == m_coor_type(0));
 
@@ -77,20 +77,20 @@ namespace lib_math {
 	}
 
 	t_raw_triangle::m_coor_type t_raw_triangle::origin_distance() const {
-		const m_coor_type p_a = ((m_verts[0]).to_vector()).inner_product(m_normal);
-		const m_coor_type p_b = ((m_verts[1]).to_vector()).inner_product(m_normal);
-		const m_coor_type p_c = ((m_verts[2]).to_vector()).inner_product(m_normal);
+		const m_coor_type p_a = ((m_verts[0]).to_vector()).inner(m_normal);
+		const m_coor_type p_b = ((m_verts[1]).to_vector()).inner(m_normal);
+		const m_coor_type p_c = ((m_verts[2]).to_vector()).inner(m_normal);
 		// can return any of p_*, averaging just reduces error
 		return ((p_a + p_b + p_c) / m_coor_type(3));
 	}
 
-	#if 1
+
 	bool t_raw_triangle::point_in_triangle(const m_point_type& point, const m_coor_type eps) const {
 		// construct planes (parallel to m_normal) for each triangle
 		// edge (note that we can not use <point> itself to do this)
-		const m_vector_type ab_plane_n = (m_verts[1] - m_verts[0]).outer_product(m_normal);
-		const m_vector_type bc_plane_n = (m_verts[2] - m_verts[1]).outer_product(m_normal);
-		const m_vector_type ca_plane_n = (m_verts[0] - m_verts[2]).outer_product(m_normal);
+		const m_vector_type ab_plane_n = (m_verts[1] - m_verts[0]).outer(m_normal);
+		const m_vector_type bc_plane_n = (m_verts[2] - m_verts[1]).outer(m_normal);
+		const m_vector_type ca_plane_n = (m_verts[0] - m_verts[2]).outer(m_normal);
 
 		const m_vector_type vp =      point.to_vector();
 		const m_vector_type vb = m_verts[1].to_vector();
@@ -102,34 +102,127 @@ namespace lib_math {
 		//   the edge-plane normals (*_n) are not normalized, therefore
 		//   the projected point-plane distances are not scaled correctly
 		//   (however signs are preserved)
-		//   CALLER must ensure this is only called when point is within
+		//   CALLER must ensure this is only called when a point is within
 		//   epsilon-distance from triangle-plane, otherwise acts for prism
-		const bool above_ab_plane = ((vp.inner_product(ab_plane_n) - vb.inner_product(ab_plane_n)) >= -eps);
-		const bool above_bc_plane = ((vp.inner_product(bc_plane_n) - vc.inner_product(bc_plane_n)) >= -eps);
-		const bool above_ca_plane = ((vp.inner_product(ca_plane_n) - va.inner_product(ca_plane_n)) >= -eps);
+		const bool above_ab_plane = ((vp.inner(ab_plane_n) - vb.inner(ab_plane_n)) >= -eps);
+		const bool above_bc_plane = ((vp.inner(bc_plane_n) - vc.inner(bc_plane_n)) >= -eps);
+		const bool above_ca_plane = ((vp.inner(ca_plane_n) - va.inner(ca_plane_n)) >= -eps);
 
 		return (above_ab_plane == above_bc_plane && above_bc_plane == above_ca_plane);
 	}
-	#else
-	bool t_raw_triangle::point_in_triangle(const m_point_type& point, const m_coor_type eps) const {
-		const m_vector_type vba = m_verts[1] - m_verts[0];
-		const m_vector_type vca = m_verts[2] - m_verts[0];
-		const m_vector_type vp  =      point - m_verts[0];
 
-		const float alpha = vba.inner_product(vp); // cos(angle(vba,vp)) * len(vba) * len(vp)
-		const float gamma = vca.inner_product(vp); // cos(angle(vca,vp)) * len(vca) * len(vp)
+	bool t_raw_triangle::point_in_triangle_bc(const m_point_type& point, const m_coor_type eps) const {
+		// barycentric containment test
+		//
+		// any point <p> inside a triangle can be expressed as a linear
+		// combination of its vertices <a>, <b> and <c> by three weights
+		// alpha, beta, and gamma (p = alpha * a + beta * b + gamma * c)
+		// which must all fall in the range [0,1] and sum to 1
+		//
+		// to find alpha and gamma analytically we can solve either the
+		// linear system a + vba*alpha = p - vca*gamma (three equations
+		// with two unknowns) or a + vca*gamma = p - vba*alpha (equally
+		// constrained); this amounts to constructing the parallelogram
+		// defined by <a> and <p> using vba and vca as basis-vectors
 
-		const bool b0 = (alpha >= 0.0f && alpha <= vba.sq_len()); // [0,1] * len(vba) * len(vba)
-		const bool b1 = (gamma >= 0.0f && gamma <= vca.sq_len()); // [0,1] * len(vca) * len(vca)
-		const bool b2 = ((alpha + gamma) <= (vba.sq_len() + vca.sq_len())); // 1 * (len(vba) + len(vca))
-		return (b0 && b1 && b2);
+		#if 0
+		const m_vector_type vba = m_verts[1] - m_verts[0]; // b - a
+		const m_vector_type vca = m_verts[2] - m_verts[0]; // c - a
+
+		// note: all ortho-vectors must point inward
+		const m_vector_type vbao = vba.outer(m_normal) * m_coor_type( 1);
+		const m_vector_type vcao = vca.outer(m_normal) * m_coor_type(-1);
+
+		// .x=min(alpha), .y=max(alpha), .z=min(gamma), .w=max(gamma)
+		m_vector_type ranges = {m_coor_type(-1), m_coor_type(1), m_coor_type(-1), m_coor_type(1)};
+		m_vector_type params;
+
+		// find alpha
+		while ((ranges.y() - ranges.x()) > eps) {
+			params.x() = (ranges.x() + ranges.y()) * 0.5f;
+
+			const m_point_type tp = point - (vba * params.x());
+			const m_vector_type tv = tp - m_verts[0];
+
+			if (tv.inner(vcao) >= m_coor_type(0)) {
+				ranges.x() = params.x();
+			} else {
+				ranges.y() = params.x();
+			}
+		}
+
+		// find gamma
+		while ((ranges.w() - ranges.z()) > eps) {
+			params.y() = (ranges.z() + ranges.w()) * 0.5f;
+
+			const m_point_type tp = point - (vca * params.y());
+			const m_vector_type tv = tp - m_verts[0];
+
+			if (tv.inner(vbao) >= m_coor_type(0)) {
+				ranges.z() = params.y();
+			} else {
+				ranges.w() = params.y();
+			}
+		}
+
+		// note: should be LEQ 1 (edge-inclusive), but that allows external points colinear with edges
+		return (params.x() >= m_coor_type(0) && params.y() >= m_coor_type(0) && (params.x() + params.y()) < m_coor_type(1));
+
+		#else
+
+		const m_point_type& p = point;
+		const m_point_type  q = p - m_normal * (p - m_verts[0]).inner(m_normal);
+
+		for (unsigned int n = 0; n < 3; n++) {
+			const m_vector_type vp  =                    q - m_verts[n]; // p - a
+			const m_vector_type vba = m_verts[(n + 1) % 3] - m_verts[n]; // b - a
+			const m_vector_type vca = m_verts[(n + 2) % 3] - m_verts[n]; // c - a
+
+			// avoid the single possible degenerate case
+			if (lib_math::absm(vba.x()) < eps)
+				continue;
+
+			// TODO: t_ray::calc_closest_point(ray)
+			//   a.x + vca.x*gamma == p.x - vba.x*alpha -> p.x - a.x == vca.x*gamma + vba.x*alpha
+			//   a.y + vca.y*gamma == p.y - vba.y*alpha -> p.y - a.y == vca.y*gamma + vba.y*alpha
+			//   a.z + vca.z*gamma == p.z - vba.z*alpha -> p.z - a.z == vca.z*gamma + vba.z*alpha
+			//
+			//   vpx == vca.x*gamma + vba.x*alpha -> vpx - vca.x*gamma == vba.x*alpha -> (vpx - vca.x*gamma)/vba.x == alpha
+			//   vpy == vca.y*gamma + vba.y*alpha -> vpy - vca.y*gamma == vba.y*alpha
+			//
+			//   (vpy - vca.y*gamma)       == vba.y * ((vpx - vca.x*gamma)/vba.x)
+			//   (vpy - vca.y*gamma)*vba.x == vba.y *  (vpx - vca.x*gamma)
+			//
+			//   vpy*vba.x - vca.y*vba.x*gamma == vpx*vba.y - vca.x*vba.y*gamma
+			//    ky       - qyx        *gamma ==  kx       - qxy        *gamma
+			//
+			//    ky      == kx - qxy*gamma + qyx *gamma
+			//    ky - kx ==    - qxy*gamma + qyx *gamma
+			//    ky - kx ==    (-qxy       + qyx)*gamma
+			//
+			//                   (ky - kx) / (-qxy + qyx)           == gamma
+			//   (vpx - vca.x * ((ky - kx) / (-qxy + qyx))) / vba.x == alpha
+			//
+			const m_coor_type kxy = vp.x() * vba.y();
+			const m_coor_type kyx = vp.y() * vba.x();
+			const m_coor_type qyx = vca.y() * vba.x();
+			const m_coor_type qxy = vca.x() * vba.y();
+
+			const m_coor_type gamma = (kyx - kxy) / (-qxy + qyx);
+			const m_coor_type alpha = (vp.x() - vca.x() * gamma) / vba.x();
+
+			return (alpha >= m_coor_type(0) && gamma >= m_coor_type(0) && (alpha + gamma) <= m_coor_type(1));
+		}
+		#endif
+
+		return false;
 	}
-	#endif
+
 
 	// test if <this> intersects <plane>
 	// TODO: return intersection-points
 	bool t_raw_triangle::intersect_plane(const t_plane& plane, const m_coor_type eps) const {
-		if ((m_coor_type(1) - std::fabs(m_normal.inner_product(plane.get_normal()))) <= eps)
+		if ((m_coor_type(1) - std::fabs(m_normal.inner(plane.get_normal()))) <= eps)
 			return false;
 
 		// we intersect <plane> if and only if not all three vertices
@@ -147,7 +240,7 @@ namespace lib_math {
 		unsigned int n = 0;
 
 		#if 1
-		if (std::fabs((triangle.get_vertex(0) - m_verts[0]).inner_product(m_normal)) > MAX_TRIANGLE_SLACK_SPACE)
+		if (std::fabs((triangle.get_vertex(0) - m_verts[0]).inner(m_normal)) > MAX_TRIANGLE_SLACK_SPACE)
 			return n;
 		#endif
 
@@ -178,7 +271,7 @@ namespace lib_math {
 				const t_ray r1 = t_ray(triangle.get_vertex(j), triangle.get_vertex((j + 1) % 3));
 
 				// parallel edges can not intersect
-				if (std::fabs((r0.dir()).inner_product(r1.dir())) > (m_coor_type(1) - eps))
+				if (std::fabs((r0.dir()).inner(r1.dir())) > (m_coor_type(1) - eps))
 					continue;
 
 				if (!r0.ray_intersect(r1, &points[n], eps))
@@ -208,7 +301,7 @@ namespace lib_math {
 		unsigned int n = 0;
 
 		// early-out #1; bail if bounding-spheres do not overlap
-		if ((calc_midpoint() - triangle.calc_midpoint()).sq_magnit() > lib_math::square(m_radius + triangle.get_radius()))
+		if ((calc_midpoint() - triangle.calc_midpoint()).sq_len() > lib_math::square(m_radius + triangle.get_radius()))
 			return n;
 		// early-out #2; bail if <this> does not intersect <triangle>'s plane
 		if (!intersect_plane(triangle.to_plane()))
@@ -217,7 +310,7 @@ namespace lib_math {
 		// first test the parallel case; if triangles overlap and
 		// are not vertically separated, we have four contacts at
 		// most
-		if ((m_coor_type(1) - std::fabs(m_normal.inner_product(triangle.get_normal()))) <= eps)
+		if ((m_coor_type(1) - std::fabs(m_normal.inner(triangle.get_normal()))) <= eps)
 			return (n = intersect_triangle_cop(triangle, points, eps));
 
 		const t_ray ray_ab = t_ray(m_verts[0], m_verts[1]), ray_ba = ray_ab.invert_pos();
@@ -229,7 +322,7 @@ namespace lib_math {
 		// (if ray_xy intersects then ray_yx is guaranteed not to)
 		//
 		// ray_xy runs FROM vertex x TO vertex y (pos=x, dir=y-x)
-		if ((ray_ab.dir()).inner_product(triangle.get_normal()) >= m_coor_type(0)) {
+		if ((ray_ab.dir()).inner(triangle.get_normal()) >= m_coor_type(0)) {
 			points[n] = ray_ba.triangle_intersection_point(triangle);
 		} else {
 			points[n] = ray_ab.triangle_intersection_point(triangle);
@@ -238,7 +331,7 @@ namespace lib_math {
 		// if point is valid, advance index
 		n += (points[n].w() == m_coor_type(1));
 
-		if ((ray_bc.dir()).inner_product(triangle.get_normal()) >= m_coor_type(0)) {
+		if ((ray_bc.dir()).inner(triangle.get_normal()) >= m_coor_type(0)) {
 			points[n] = ray_cb.triangle_intersection_point(triangle);
 		} else {
 			points[n] = ray_bc.triangle_intersection_point(triangle);
@@ -246,7 +339,7 @@ namespace lib_math {
 
 		n += (points[n].w() == m_coor_type(1));
 
-		if ((ray_ca.dir()).inner_product(triangle.get_normal()) >= m_coor_type(0)) {
+		if ((ray_ca.dir()).inner(triangle.get_normal()) >= m_coor_type(0)) {
 			points[n] = ray_ac.triangle_intersection_point(triangle);
 		} else {
 			points[n] = ray_ca.triangle_intersection_point(triangle);
