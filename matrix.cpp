@@ -5,35 +5,6 @@
 #include "./vector.hpp"
 
 namespace lib_math {
-	#if 0
-	template<> t_matrix44f t_matrix44f::invert_projective(const float eps) const {
-		t_matrix44f mat;
-		t_matrix44f& cofac = mat;
-
-		for (unsigned int i = 0; i < MATRIX_SIZE; i++) {
-			for (unsigned int j = 0; j < MATRIX_SIZE; j++) {
-				cofac.m_xyzt[i][j] = CalculateCofactor(m_xyzt, i, j);
-			}
-		}
-
-		const float det =
-			(m_xyzt[0][0] * cofac.m_xyzt[0][0]) +
-			(m_xyzt[0][1] * cofac.m_xyzt[0][1]) +
-			(m_xyzt[0][2] * cofac.m_xyzt[0][2]) +
-			(m_xyzt[0][3] * cofac.m_xyzt[0][3]);
-
-		if (det < eps) {
-			// <this> is a singular matrix
-			return mat;
-		}
-
-		mat *= (1.0f / det);
-		mat.transpose_ref();
-		return mat;
-	}
-	#endif
-
-
 	// extracts the rotation angles from a matrix
 	//
 	// this assumes a right-handed coordinate system; if called

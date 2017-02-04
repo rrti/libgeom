@@ -179,21 +179,80 @@ namespace lib_math {
 
 
 		type trace() const { return (m_xyzt[0] + m_xyzt[5] + m_xyzt[10] + m_xyzt[15]); }
+		type det(type* s, type* c) const {
+			type d = type(0);
+
+			#define M(row, col) m_xyzt[col * 4 + row]
+			const type m00 = M(0, 0), m01 = M(0, 1), m02 = M(0, 2), m03 = M(0, 3);
+			const type m10 = M(1, 0), m11 = M(1, 1), m12 = M(1, 2), m13 = M(1, 3);
+			const type m20 = M(2, 0), m21 = M(2, 1), m22 = M(2, 2), m23 = M(2, 3);
+			const type m30 = M(3, 0), m31 = M(3, 1), m32 = M(3, 2), m33 = M(3, 3);
+			#undef M
+
+			// cross-pairs, upper rows (0,1)
+			s[0] = m00 * m11 - m10 * m01;
+			s[1] = m00 * m12 - m10 * m02;
+			s[2] = m00 * m13 - m10 * m03;
+			s[3] = m01 * m12 - m11 * m02;
+			s[4] = m01 * m13 - m11 * m03;
+			s[5] = m02 * m13 - m12 * m03;
+			// cross-pairs, lower rows (2,3)
+			c[0] = m20 * m31 - m30 * m21;
+			c[1] = m20 * m32 - m30 * m22;
+			c[2] = m20 * m33 - m30 * m23;
+			c[3] = m21 * m32 - m31 * m22;
+			c[4] = m21 * m33 - m31 * m23;
+			c[5] = m22 * m33 - m32 * m23;
+
+			// note: det(A) == det(A^T), data layout (RM or CM) does not matter
+			d += (s[0] * c[5]); d -= (s[1] * c[4]);
+			d += (s[2] * c[3]); d += (s[3] * c[2]);
+			d -= (s[4] * c[1]); d += (s[5] * c[0]);
+			return d;
+		}
+
 		type det() const {
-			type v = type(0);
+			#define M(row, col) m_xyzt[col * 4 + row]
+			const type m00 = M(0, 0), m01 = M(0, 1), m02 = M(0, 2), m03 = M(0, 3);
+			const type m10 = M(1, 0), m11 = M(1, 1), m12 = M(1, 2), m13 = M(1, 3);
+			const type m20 = M(2, 0), m21 = M(2, 1), m22 = M(2, 2), m23 = M(2, 3);
+			const type m30 = M(3, 0), m31 = M(3, 1), m32 = M(3, 2), m33 = M(3, 3);
+			#undef M
 
-			#define a(row, col) (*this)[(col - 1) * 4 + (row - 1)]
-			v += (a(1,1) * a(2,2) * a(3,3) * a(4,4));  v += (a(1,1) * a(2,3) * a(3,4) * a(4,2));  v += (a(1,1) * a(2,4) * a(3,2) * a(4,3));
-			v += (a(1,2) * a(2,1) * a(3,4) * a(4,3));  v += (a(1,2) * a(2,3) * a(3,1) * a(4,4));  v += (a(1,2) * a(2,4) * a(3,3) * a(4,1));
-			v += (a(1,3) * a(2,1) * a(3,2) * a(4,4));  v += (a(1,3) * a(2,2) * a(3,4) * a(4,1));  v += (a(1,3) * a(2,4) * a(3,1) * a(4,2));
-			v += (a(1,4) * a(2,1) * a(3,3) * a(4,2));  v += (a(1,4) * a(2,2) * a(3,1) * a(4,3));  v += (a(1,4) * a(2,3) * a(3,2) * a(4,1));
-			v -= (a(1,1) * a(2,2) * a(3,4) * a(4,3));  v -= (a(1,1) * a(2,3) * a(3,2) * a(4,4));  v -= (a(1,1) * a(2,4) * a(3,3) * a(4,2));
-			v -= (a(1,2) * a(2,1) * a(3,3) * a(4,4));  v -= (a(1,2) * a(2,3) * a(3,4) * a(4,1));  v -= (a(1,2) * a(2,4) * a(3,1) * a(4,3));
-			v -= (a(1,3) * a(2,1) * a(3,4) * a(4,2));  v -= (a(1,3) * a(2,2) * a(3,1) * a(4,4));  v -= (a(1,3) * a(2,4) * a(3,2) * a(4,1));
-			v -= (a(1,4) * a(2,1) * a(3,2) * a(4,3));  v -= (a(1,4) * a(2,2) * a(3,3) * a(4,1));  v -= (a(1,4) * a(2,3) * a(3,1) * a(4,2));
-			#undef a
+			#if 0
+			type d = type(0);
 
-			return v;
+			d += (m00 * m11 * m22 * m33); d += (m00 * m12 * m23 * m31);
+			d += (m00 * m13 * m21 * m32); d += (m01 * m10 * m23 * m32);
+			d += (m01 * m12 * m20 * m33); d += (m01 * m13 * m22 * m30);
+			d += (m02 * m10 * m21 * m33); d += (m02 * m11 * m23 * m30);
+			d += (m02 * m13 * m20 * m31); d += (m03 * m10 * m22 * m31);
+			d += (m03 * m11 * m20 * m32); d += (m03 * m12 * m21 * m30);
+
+			d -= (m00 * m11 * m23 * m32); d -= (m00 * m12 * m21 * m33);
+			d -= (m00 * m13 * m22 * m31); d -= (m01 * m10 * m22 * m33);
+			d -= (m01 * m12 * m23 * m30); d -= (m01 * m13 * m20 * m32);
+			d -= (m02 * m10 * m23 * m31); d -= (m02 * m11 * m20 * m33);
+			d -= (m02 * m13 * m21 * m30); d -= (m03 * m10 * m21 * m32);
+			d -= (m03 * m11 * m22 * m30); d -= (m03 * m12 * m20 * m31);
+
+			return d;
+			#else
+			// equivalent; more readable
+			const type v0 = (m20 * m31) - (m21 * m30);
+			const type v1 = (m20 * m32) - (m22 * m30);
+			const type v2 = (m20 * m33) - (m23 * m30);
+			const type v3 = (m21 * m32) - (m22 * m31);
+			const type v4 = (m21 * m33) - (m23 * m31);
+			const type v5 = (m22 * m33) - (m23 * m32);
+
+			const type t00 = +(v5 * m11 - v4 * m12 + v3 * m13);
+			const type t10 = -(v5 * m10 - v2 * m12 + v1 * m13);
+			const type t20 = +(v4 * m10 - v2 * m11 + v0 * m13);
+			const type t30 = -(v3 * m10 - v1 * m11 + v0 * m12);
+
+			return ((t00 * m00) + (t10 * m01) + (t20 * m02) + (t30 * m03));
+			#endif
 		}
 
 
@@ -268,7 +327,7 @@ namespace lib_math {
 			return r;
 		}
 
-		// assumes this matrix only performs translation and rotation
+		// specialized inverse for orthonormal (T+R) matrices
 		m_mat_type invert_affine() const {
 			m_mat_type r = *this;
 
@@ -279,9 +338,46 @@ namespace lib_math {
 			return r;
 		}
 		// generalized inverse for non-orthonormal 4x4 matrices
+		// this expresses the "unrolled" (faster) equivalent of
 		// A^-1 = (1 / det(A)) (C^T)_{ij} = (1 / det(A)) C_{ji}
-		// where C is the matrix of cofactors
-		m_mat_type invert_projective(const type eps = M_FEPS) const;
+		// where C is the cofactor-matrix
+		m_mat_type invert_projective(const type eps = M_FEPS) const {
+			const m_mat_type& m = *this;
+			      m_mat_type  r = *this;
+
+			// need the cross-pairs here
+			type s[6];
+			type c[6];
+
+			const type  d = det(&s[0], &c[0]);
+			const type rd = type(1) / (d + eps * lib_math::signum(d));
+
+			#define R(row, col) r[col * 4 + row]
+			#define M(row, col) m[col * 4 + row]
+			R(0, 0) = ( M(1, 1) * c[5] - M(1, 2) * c[4] + M(1, 3) * c[3]) * rd;
+			R(0, 1) = (-M(0, 1) * c[5] + M(0, 2) * c[4] - M(0, 3) * c[3]) * rd;
+			R(0, 2) = ( M(3, 1) * s[5] - M(3, 2) * s[4] + M(3, 3) * s[3]) * rd;
+			R(0, 3) = (-M(2, 1) * s[5] + M(2, 2) * s[4] - M(2, 3) * s[3]) * rd;
+
+			R(1, 0) = (-M(1, 0) * c[5] + M(1, 2) * c[2] - M(1, 3) * c[1]) * rd;
+			R(1, 1) = ( M(0, 0) * c[5] - M(0, 2) * c[2] + M(0, 3) * c[1]) * rd;
+			R(1, 2) = (-M(3, 0) * s[5] + M(3, 2) * s[2] - M(3, 3) * s[1]) * rd;
+			R(1, 3) = ( M(2, 0) * s[5] - M(2, 2) * s[2] + M(2, 3) * s[1]) * rd;
+
+			R(2, 0) = ( M(1, 0) * c[4] - M(1, 1) * c[2] + M(1, 3) * c[0]) * rd;
+			R(2, 1) = (-M(0, 0) * c[4] + M(0, 1) * c[2] - M(0, 3) * c[0]) * rd;
+			R(2, 2) = ( M(3, 0) * s[4] - M(3, 1) * s[2] + M(3, 3) * s[0]) * rd;
+			R(2, 3) = (-M(2, 0) * s[4] + M(2, 1) * s[2] - M(2, 3) * s[0]) * rd;
+
+			R(3, 0) = (-M(1, 0) * c[3] + M(1, 1) * c[1] - M(1, 2) * c[0]) * rd;
+			R(3, 1) = ( M(0, 0) * c[3] - M(0, 1) * c[1] + M(0, 2) * c[0]) * rd;
+			R(3, 2) = (-M(3, 0) * s[3] + M(3, 1) * s[1] - M(3, 2) * s[0]) * rd;
+			R(3, 3) = ( M(2, 0) * s[3] - M(2, 1) * s[1] + M(2, 2) * s[0]) * rd;
+			#undef M
+			#undef R
+
+			return r;
+		}
 
 		m_mat_type& orthonormalize_ref() { return ((*this) = orthonormalize()); }
 		m_mat_type& translate_ref(const m_vec_type& tv) { return ((*this) = translate(tv)); }
@@ -291,6 +387,7 @@ namespace lib_math {
 		m_mat_type& transpose_rotation_ref() { return ((*this) = transpose_rotation()); }
 		m_mat_type& transpose_translation_ref() { return ((*this) = transpose_translation()); }
 		m_mat_type& invert_affine_ref() { return ((*this) = invert_affine()); }
+		m_mat_type& invert_projective_ref() { return ((*this) = invert_projective()); }
 
 
 
