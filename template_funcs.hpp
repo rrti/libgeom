@@ -6,9 +6,19 @@
 #include <algorithm>
 #include <cmath>
 
+namespace lib_sys {
+	static uint8_t is_little_endian_arch() {
+		const int16_t i = 1;
+		const int8_t* b = reinterpret_cast<const int8_t*>(&i);
+		return (b[0] == 1);
+	}
+};
+
 namespace lib_math {
-	static const size_t POWERS_OF_TWO[] = {1,  2,   4,    8,    16,     32,      64,      128};
-	static const size_t POWERS_OF_TEN[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
+	static const uint8_t IS_LITTLE_ENDIAN = lib_sys::is_little_endian_arch();
+
+	static constexpr size_t POWERS_OF_TWO[] = {1,  2,   4,    8,    16,     32,      64,      128};
+	static constexpr size_t POWERS_OF_TEN[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
 
 	template<typename type> struct t_matrix44t;
 	template<typename type> struct t_vector4t;
@@ -37,6 +47,29 @@ namespace lib_math {
 	template<typename type> type min3(type a, type b, type c) { return (std::min<type>(a, std::min<type>(b, c))); }
 	template<typename type> type max3(type a, type b, type c) { return (std::max<type>(a, std::max<type>(b, c))); }
 	template<typename type> type sign(type v) { return ((v >= type(0)) * type(2) - type(1)); }
+	template<typename type> int8_t bsign(const type v) {
+		static_assert(std::is_signed<type>::value, "");
+
+		#if 0
+		switch (sizeof(type)) {
+			// breaks strict-aliasing rules
+			case 1: { return (((*reinterpret_cast<const int8_t *>(&v) >>  7) & 1) * -2 + 1); } break;
+			case 2: { return (((*reinterpret_cast<const int16_t*>(&v) >> 15) & 1) * -2 + 1); } break;
+			case 4: { return (((*reinterpret_cast<const int32_t*>(&v) >> 31) & 1) * -2 + 1); } break;
+			case 8: { return (((*reinterpret_cast<const int64_t*>(&v) >> 63) & 1) * -2 + 1); } break;
+			default: {} break;
+		}
+		return 0;
+		#else
+		// sensitive to endian-ness
+		constexpr size_t byte_idx = sizeof(type) - 1;
+
+		const  int8_t sign_bit = (reinterpret_cast<const int8_t*>(&v)[byte_idx * IS_LITTLE_ENDIAN] >> 7) & 1;
+		const  int8_t sign_val = sign_bit * -2 + 1;
+		return sign_val;
+		#endif
+	}
+
 	// (type(1) - wgt) works only if <type> is a scalar, so we rewrite it to a form accepting
 	// both scalars and vectors (X * (1 - a) + Y * a == X - X * a + Y * a == X - (X + Y) * a)
 	// the latter however still requires wgt to be specified as a vector which is painful
@@ -146,12 +179,12 @@ namespace lib_math {
 		//   (e.g. atan2 has a transition at PI/-PI which breaks lerp, transforming
 		//   by (a + 2PI) % 2PI only shifts the discontinuity to 2PI/0)
 		//   comparing signs is only valid for angles in [-PI, PI], not [0, 2PI]
-		if (sign(v0) == sign(v1))
-			return (lerp(v0, v1, wgt));
-		const t_vector4t<type>& vv0 = angle_to_vector_xz(v0);
-		const t_vector4t<type>& vv1 = angle_to_vector_xz(v1);
+		if (lib_math::sign(v0) == lib_math::sign(v1))
+			return (lib_math::lerp(v0, v1, wgt));
+		const t_vector4t<type>& vv0 = lib_math::angle_to_vector_xz(v0);
+		const t_vector4t<type>& vv1 = lib_math::angle_to_vector_xz(v1);
 		const t_vector4t<type>& vvi = lib_math::slerp(vv0, vv1, wgt, eps);
-		return (vector_to_angle_xz(vvi));
+		return (lib_math::vector_to_angle_xz(vvi));
 	}
 
 	// clamp an angle in radians to the range [0, 2PI]
@@ -163,7 +196,7 @@ namespace lib_math {
 	}
 	// clamp an angle in degrees to the range [0, 360]
 	template<typename type> type clamp_angle_deg(type raw_angle) {
-		return (clamp_angle_rad(raw_angle * deg_to_rad<type>()) * rad_to_deg<type>());
+		return (lib_math::clamp_angle_rad(raw_angle * lib_math::deg_to_rad<type>()) * lib_math::rad_to_deg<type>());
 	}
 
 	// behaves as relative-tolerance comparison when abs(a) and abs(b)
