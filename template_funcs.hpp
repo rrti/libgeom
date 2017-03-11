@@ -41,6 +41,14 @@ namespace lib_math {
 		__m128 vec = _mm_set_ss(v); vec = _mm_rsqrt_ss(vec); return (_mm_cvtss_f32(vec));
 	}
 
+	template<typename float4>  attr_align_stack  __m128 float4_to_m128(const float4& f) { return (_mm_loadu_ps(&f[0])); }
+	template<typename float4>  attr_align_stack  float4 m128_to_float4(const __m128& m) {
+		union { __m128 m; float f[4]; } u;
+		u.m = m;
+		return (float4(u.f[0], u.f[1], u.f[2], u.f[3]));
+	}
+
+
 	template<typename type> type     sqrt(type v) { return (               std::sqrt(v)); }
 	template<typename type> type inv_sqrt(type v) { return (type(1) / lib_math::sqrt(v)); }
 
@@ -216,8 +224,8 @@ namespace lib_math {
 	}
 	#else
 	template<typename type> type signum(type v) {
-		const int gtz = (v >  type(0)) * 2 - 1;
-		const int eqz = (v == type(0)) * 1;
+		const type gtz = (v >  type(0)) * type(2) - type(1);
+		const type eqz = (v == type(0)) * type(1);
 		return (gtz + eqz);
 	}
 	#endif
