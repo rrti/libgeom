@@ -31,9 +31,9 @@ namespace lib_math {
 	template<> const t_tuple4ui& t_tuple4ui::ones_tuple() { return ones_tuple_4ui; }
 	template<> const t_tuple4ui& t_tuple4ui:: eps_tuple() { return  eps_tuple_4ui; }
 
-	template<> void t_tuple4d::print() const { printf("<x=%.3g, y=%.3g, z=%.3g, w=%.3g>\n", x(), y(), z(), w()); }
-	template<> void t_tuple4f::print() const { printf("<x=%.3f, y=%.3f, z=%.3f, w=%.3f>\n", x(), y(), z(), w()); }
-	// template<> void t_tuple4d::print() const { printf("<x=%.3g, y=%.3g, z=%.3g, w=%.3g h=%u>\n", x(), y(), z(), w(), hash()); }
-	// template<> void t_tuple4f::print() const { printf("<x=%.3f, y=%.3f, z=%.3f, w=%.3f h=%u>\n", x(), y(), z(), w(), hash()); }
+	template<> void t_tuple4d::print() const { std::printf("<x=%.3g, y=%.3g, z=%.3g, w=%.3g>\n", x(), y(), z(), w()); }
+	template<> void t_tuple4f::print() const { std::printf("<x=%.3f, y=%.3f, z=%.3f, w=%.3f>\n", x(), y(), z(), w()); }
+	// template<> void t_tuple4d::print() const { std::printf("<x=%.3g, y=%.3g, z=%.3g, w=%.3g h=%u>\n", x(), y(), z(), w(), hash()); }
+	// template<> void t_tuple4f::print() const { std::printf("<x=%.3f, y=%.3f, z=%.3f, w=%.3f h=%u>\n", x(), y(), z(), w(), hash()); }
 };
 

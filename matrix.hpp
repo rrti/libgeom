@@ -65,7 +65,7 @@ namespace lib_math {
 			tp.x() = (m_xyzt[0] * p.x()) + (m_xyzt[4] * p.y()) + (m_xyzt[ 8] * p.z()) + (m_xyzt[12] * p.w());
 			tp.y() = (m_xyzt[1] * p.x()) + (m_xyzt[5] * p.y()) + (m_xyzt[ 9] * p.z()) + (m_xyzt[13] * p.w());
 			tp.z() = (m_xyzt[2] * p.x()) + (m_xyzt[6] * p.y()) + (m_xyzt[10] * p.z()) + (m_xyzt[14] * p.w());
-			tp.w() = p.w();
+			tp.w() = (m_xyzt[3] * p.x()) + (m_xyzt[7] * p.y()) + (m_xyzt[11] * p.z()) + (m_xyzt[15] * p.w());
 			return tp;
 		}
 
@@ -83,7 +83,7 @@ namespace lib_math {
 			tv.x() = (m_xyzt[0] * v.x()) + (m_xyzt[4] * v.y()) + (m_xyzt[ 8] * v.z()); // same as n.inner(row[0])
 			tv.y() = (m_xyzt[1] * v.x()) + (m_xyzt[5] * v.y()) + (m_xyzt[ 9] * v.z()); // same as n.inner(row[1])
 			tv.z() = (m_xyzt[2] * v.x()) + (m_xyzt[6] * v.y()) + (m_xyzt[10] * v.z()); // same as n.inner(row[2])
-			tv.w() = v.w();
+			tv.w() = (m_xyzt[3] * v.x()) + (m_xyzt[7] * v.y()) + (m_xyzt[11] * v.z()); // no w; always 0
 			return tv;
 		}
 
@@ -97,21 +97,25 @@ namespace lib_math {
 			r[ 0] = (m_xyzt[0] * m[ 0]) + (m_xyzt[4] * m[ 1]) + (m_xyzt[ 8] * m[ 2]) + (m_xyzt[12] * m[ 3]);
 			r[ 1] = (m_xyzt[1] * m[ 0]) + (m_xyzt[5] * m[ 1]) + (m_xyzt[ 9] * m[ 2]) + (m_xyzt[13] * m[ 3]);
 			r[ 2] = (m_xyzt[2] * m[ 0]) + (m_xyzt[6] * m[ 1]) + (m_xyzt[10] * m[ 2]) + (m_xyzt[14] * m[ 3]);
+			r[ 3] = (m_xyzt[3] * m[ 0]) + (m_xyzt[7] * m[ 1]) + (m_xyzt[11] * m[ 2]) + (m_xyzt[15] * m[ 3]);
 
 			// rows 0-2 with column 1 of m ( 4- 7)
 			r[ 4] = (m_xyzt[0] * m[ 4]) + (m_xyzt[4] * m[ 5]) + (m_xyzt[ 8] * m[ 6]) + (m_xyzt[12] * m[ 7]);
 			r[ 5] = (m_xyzt[1] * m[ 4]) + (m_xyzt[5] * m[ 5]) + (m_xyzt[ 9] * m[ 6]) + (m_xyzt[13] * m[ 7]);
 			r[ 6] = (m_xyzt[2] * m[ 4]) + (m_xyzt[6] * m[ 5]) + (m_xyzt[10] * m[ 6]) + (m_xyzt[14] * m[ 7]);
+			r[ 7] = (m_xyzt[3] * m[ 4]) + (m_xyzt[7] * m[ 5]) + (m_xyzt[11] * m[ 6]) + (m_xyzt[15] * m[ 7]);
 
 			// rows 0-2 with column 2 of m ( 8-11)
 			r[ 8] = (m_xyzt[0] * m[ 8]) + (m_xyzt[4] * m[ 9]) + (m_xyzt[ 8] * m[10]) + (m_xyzt[12] * m[11]);
 			r[ 9] = (m_xyzt[1] * m[ 8]) + (m_xyzt[5] * m[ 9]) + (m_xyzt[ 9] * m[10]) + (m_xyzt[13] * m[11]);
 			r[10] = (m_xyzt[2] * m[ 8]) + (m_xyzt[6] * m[ 9]) + (m_xyzt[10] * m[10]) + (m_xyzt[14] * m[11]);
+			r[11] = (m_xyzt[3] * m[ 8]) + (m_xyzt[7] * m[ 9]) + (m_xyzt[11] * m[10]) + (m_xyzt[15] * m[11]);
 
 			// rows 0-2 with column 3 of m (12-15)
 			r[12] = (m_xyzt[0] * m[12]) + (m_xyzt[4] * m[13]) + (m_xyzt[ 8] * m[14]) + (m_xyzt[12] * m[15]);
 			r[13] = (m_xyzt[1] * m[12]) + (m_xyzt[5] * m[13]) + (m_xyzt[ 9] * m[14]) + (m_xyzt[13] * m[15]);
 			r[14] = (m_xyzt[2] * m[12]) + (m_xyzt[6] * m[13]) + (m_xyzt[10] * m[14]) + (m_xyzt[14] * m[15]);
+			r[15] = (m_xyzt[3] * m[12]) + (m_xyzt[7] * m[13]) + (m_xyzt[11] * m[14]) + (m_xyzt[15] * m[15]);
 
 			return r;
 		}

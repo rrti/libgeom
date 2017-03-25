@@ -89,12 +89,12 @@ namespace lib_math {
 
 
 	template<> void t_matrix44f::print(const char* tabs) const {
-		printf("\n%s  X       Y       Z       T\n%s", tabs, tabs);
-		for (unsigned int n = 0; n < MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 1st row
-		for (unsigned int n = 1; n < MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 2nd row
-		for (unsigned int n = 2; n < MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 3rd row
-		for (unsigned int n = 3; n < MATRIX_SIZE; n += 4) { printf(" %+.3f ", m_xyzt[n]); } printf("\n%s", tabs); // 4th row
-		printf("\n");
+		std::printf("\n%s  X       Y       Z       T\n%s", tabs, tabs);
+		for (unsigned int n = 0; n < MATRIX_SIZE; n += 4) { std::printf(" %+.3f ", m_xyzt[n]); } std::printf("\n%s", tabs); // 1st row
+		for (unsigned int n = 1; n < MATRIX_SIZE; n += 4) { std::printf(" %+.3f ", m_xyzt[n]); } std::printf("\n%s", tabs); // 2nd row
+		for (unsigned int n = 2; n < MATRIX_SIZE; n += 4) { std::printf(" %+.3f ", m_xyzt[n]); } std::printf("\n%s", tabs); // 3rd row
+		for (unsigned int n = 3; n < MATRIX_SIZE; n += 4) { std::printf(" %+.3f ", m_xyzt[n]); } std::printf("\n%s", tabs); // 4th row
+		std::printf("\n");
 	}
 };
 

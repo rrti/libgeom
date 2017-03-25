@@ -11,6 +11,9 @@
 // slack-space allowed between (coplanar) triangle surfaces
 #define MAX_TRIANGLE_SLACK_SPACE 0.05f
 
+#define X_AXIS_IDX 0
+#define Z_AXIS_IDX 2
+
 #define P_AXIS_IDX 0 // pitch (x-axis, [0])
 #define Y_AXIS_IDX 1 //   yaw (y-axis, [1])
 #define R_AXIS_IDX 2 //  roll (z-axis, [2])
