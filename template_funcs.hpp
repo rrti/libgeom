@@ -55,6 +55,8 @@ namespace lib_math {
 	template<typename type> type min3(type a, type b, type c) { return (std::min<type>(a, std::min<type>(b, c))); }
 	template<typename type> type max3(type a, type b, type c) { return (std::max<type>(a, std::max<type>(b, c))); }
 	template<typename type> type sign(type v) { return ((v >= type(0)) * type(2) - type(1)); }
+
+	template<typename type> int8_t ssign(const type v) { return ((v > type(0)) - (v < type(0))); }
 	template<typename type> int8_t bsign(const type v) {
 		static_assert(std::is_signed<type>::value, "");
 

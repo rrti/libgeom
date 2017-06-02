@@ -337,7 +337,7 @@ namespace lib_math {
 
 			// transpose the rotation
 			r.transpose_rotation_ref();
-			// set the inverse translation; R*v ignores T
+			// inverse the translation; R*v ignores T
 			r.set_t_vec(r * -r.get_t_vec());
 			return r;
 		}
