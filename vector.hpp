@@ -87,6 +87,10 @@ namespace lib_math {
 			return ((x() * v.x() * mask.x()) + (y() * v.y() * mask.y()) + (z() * v.z() * mask.z()) + (w() * v.w() * mask.w()));
 		}
 
+		// scalar-triple (mixed) product
+		type triple_product(const t_vector4t<type>& v, t_vector4t<type>& w) const { return (triple(v, w)); }
+		type triple        (const t_vector4t<type>& v, t_vector4t<type>& w) const { return ((v.outer(w)).inner(*this)); }
+
 		type sq_magnit(const t_vector4t<type>& mask = xyz_vector()) const { return (sq_len(mask)); }
 		type    magnit(const t_vector4t<type>& mask = xyz_vector()) const { return (   len(mask)); }
 		type sq_length(const t_vector4t<type>& mask = xyz_vector()) const { return (sq_len(mask)); }
