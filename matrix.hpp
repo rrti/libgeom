@@ -738,7 +738,7 @@ namespace lib_math {
 			const t_quaternion<type>& src_quat = t_quaternion<type>::rot_matrix_quat_cm(src_mat);
 			const t_quaternion<type>& dst_quat = t_quaternion<type>::rot_matrix_quat_cm(dst_mat);
 			const t_quaternion<type>& lrp_quat = t_quaternion<type>::slerp(src_quat, dst_quat, alpha.x(), 0.00005f);
-			const         m_mat_type& lrp_matr = lrp_quat.to_rotation_matrix();
+			const         m_mat_type& lrp_matr = lrp_quat.calc_rotation_matrix();
 
 			r.set_x_vec(lrp_matr.get_x_vec());
 			r.set_y_vec(lrp_matr.get_y_vec());

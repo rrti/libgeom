@@ -137,6 +137,7 @@ namespace lib_math {
 			return (q.normalize());
 		}
 
+
 		// encode a rotation of <angle> radians around the unit-vector <axis>
 		// when rotating a vector we multiply it both by this quaternion and
 		// its conjugate, rotating into and then out of the fourth dimension
@@ -209,7 +210,7 @@ namespace lib_math {
 
 
 		// convert a unit-length quaternion to an (xyz=axis, w=angle) vector
-		t_vector4t<type> to_axis_angle_vector() const {
+		t_vector4t<type> calc_axis_angle_vector() const {
 			t_vector4t<type> v;
 
 			const type angle = calc_angle();
@@ -222,8 +223,30 @@ namespace lib_math {
 			return v;
 		}
 
+		t_vector4t<type> calc_euler_angles() const {
+			constexpr type t1 = 1;
+			constexpr type t2 = 2;
+
+			// roll (z-axis rotation)
+			const type sinr =      t2 * (a() * b() + c() * d());
+			const type cosr = t1 - t2 * (b() * b() + c() * c());
+
+			// pitch (x-axis rotation); set to 90 degrees if out of range
+			const type sinp =      t2 * (a() * c() - d() * b());
+
+			// yaw (y-axis rotation)
+			const type siny =      t2 * (a() * d() + b() * c());
+			const type cosy = t1 - t2 * (c() * c() + d() * d());
+
+			const type r =                         std::atan2(sinr, cosr);
+			const type p = (std::fabs(sinp) < t1)? std::asin (sinp      ): std::copysign(M_PI * type(0.5), sinp);
+			const type y =                         std::atan2(siny, cosy);
+
+			return {r, p, y, type(0)};
+		}
+
 		// convert a unit-quaternion to a (column-major) rotation-matrix
-		t_matrix44t<type> to_rotation_matrix() const {
+		t_matrix44t<type> calc_rotation_matrix() const {
 			t_matrix44t<type> r;
 
 			constexpr type t1 = 1;
