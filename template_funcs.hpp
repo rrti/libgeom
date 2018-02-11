@@ -92,6 +92,25 @@ namespace lib_math {
 	template<typename type> type clamp(type v, type v0, type v1) { return (std::max<type>(v0, std::min<type>(v1, v))); }
 	template<typename type> type square(type v) { return (v * v); }
 
+	template<typename type> type wrap(type v, type v0, type v1) {
+		assert(v0 <= v1);
+
+		const type range = v1 - v0;
+		const type delta = v  - v0;
+
+		#if 0
+		static_assert(std::is_integral<type>() || std::is_floating_point<type>());
+
+		// not available until C++17, use fmod even for integer types
+		if constexpr (std::is_floating_point<type>())
+			return (v0 + std::fmod((std::fmod(delta, range) + range), range));
+
+		return (v0 + ((delta % range) + range) % range);
+		#else
+		return (v0 + std::fmod((std::fmod(delta, range) + range), range));
+		#endif
+	}
+
 	template<typename type> type abss(type v) { return (lib_math::sign(v) * v); }
 	template<typename type> type absl(type v) { return (lib_math::lerp(v, -v, v < type(0))); }
 	template<typename type> type absm(type v) { return (std::max(v, -v)); }
@@ -217,20 +236,23 @@ namespace lib_math {
 		return (a == b || std::abs(a - b) <= (eps * max3<type>(std::abs(a), std::abs(b), type(1))));
 	}
 
-	// unlike sign(), treats zero specially
+
 	#if 0
+	// unlike sign(), treats zero specially
 	template<typename type> type signum(type v) {
 		if (v > type(0)) return (type( 1));
 		if (v < type(0)) return (type(-1));
 		return (type(0));
 	}
 	#else
+	// equal to return (type(v > type(0)) - type(v < type(0)))
 	template<typename type> type signum(type v) {
 		const type gtz = (v >  type(0)) * type(2) - type(1);
 		const type eqz = (v == type(0)) * type(1);
 		return (gtz + eqz);
 	}
 	#endif
+
 
 	template<typename type> type round(type v, size_t n) {
 		if (n > 0) {

@@ -113,6 +113,20 @@ namespace lib_math {
 		#endif
 
 
+		type delta_angle_xy(const t_vector4t<type>& w) const {
+			const t_vector4t<type>& v = *this;
+			const t_vector4t<type>  c = v.outer_product(w);
+
+			// angle to rotate <this> (anti-clockwise) to <w>, in [-PI, PI>
+			// both vectors are assumed not to have a z-component (i.e. lie
+			// in the xy-plane) but can be non-normalized
+			const type angle = std::acos(inner_product(w) / (v.length() * w.length()));
+			const type zsign = lib_math::sign(c.z());
+
+			return (angle * zsign);
+		}
+
+
 		// returns length, normalizes at same time
 		// no point adding a const-version of this
 		// ("length" == "magnitude")
